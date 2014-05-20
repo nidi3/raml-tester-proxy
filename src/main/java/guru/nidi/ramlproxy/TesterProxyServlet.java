@@ -12,7 +12,13 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
@@ -21,10 +27,14 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final RamlDefinition ramlDefinition;
+    private final File saveDir;
+    private final AtomicLong id = new AtomicLong();
+    private final String startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
 
-    public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition) {
+    public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition, File saveDir) {
         super(proxyTo, "");
         this.ramlDefinition = ramlDefinition;
+        this.saveDir = saveDir;
     }
 
     @Override
@@ -36,14 +46,14 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
 
     @Override
     protected void onResponseSuccess(HttpServletRequest request, HttpServletResponse response, Response proxyResponse) {
-        super.onResponseSuccess(request, response, proxyResponse);
         test(request, response);
+        super.onResponseSuccess(request, response, proxyResponse);
     }
 
     @Override
     protected void onResponseFailure(HttpServletRequest request, HttpServletResponse response, Response proxyResponse, Throwable failure) {
-        super.onResponseFailure(request, response, proxyResponse, failure);
         test(request, response);
+        super.onResponseFailure(request, response, proxyResponse, failure);
     }
 
     private void test(HttpServletRequest request, HttpServletResponse response) {
@@ -53,7 +63,46 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     private void test(ServletRamlRequest request, ServletRamlResponse response) {
         final RamlReport report = ramlDefinition.testAgainst(request, response);
         if (!report.isEmpty()) {
-            log.error("{}\nRequest:  {}\nResponse: {}", request.getMethod() + " " + request.getRequestURL(), report.getRequestViolations(), report.getResponseViolations());
+            final long idValue = id.incrementAndGet();
+            log.error("<{}> {}\n           Request:  {}\n           Response: {}", idValue, formatRequest(request), report.getRequestViolations(), report.getResponseViolations());
+            writeToFile(idValue, report, request, response);
         }
     }
+
+    private void writeToFile(long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+        if (saveDir == null) {
+            return;
+        }
+        try {
+            try (FileOutputStream out = new FileOutputStream(new File(saveDir, "raml-violation-" + startup + "--" + idValue))) {
+                out.write(("Request violations: " + report.getRequestViolations() + "\n\n").getBytes());
+                out.write((formatRequest(request) + "\n").getBytes());
+                out.write((formatHeaders(request.getHeaderMap()) + "\n").getBytes());
+                out.write((request.getContent() == null ? "No content" : request.getContent()).getBytes());
+                out.write(("\n\n\nResponse violations: " + report.getResponseViolations() + "\n\n").getBytes());
+                out.write((formatHeaders(response.getHeaderMap()) + "\n").getBytes());
+                out.write((response.getContent() == null ? "No content" : response.getContent()).getBytes());
+            }
+        } catch (IOException e) {
+            log.error("Problem writing error file", e);
+        }
+    }
+
+    protected String formatRequest(ServletRamlRequest request) {
+        return request.getMethod() + " " + request.getRequestURL() +
+                (request.getQueryString() == null ? "" : ("?" + request.getQueryString())) +
+                " from " + request.getRemoteHost();
+
+    }
+
+    private String formatHeaders(Map<String, String[]> headerMap) {
+        String res = "";
+        for (Map.Entry<String, String[]> entry : headerMap.entrySet()) {
+            for (String value : entry.getValue()) {
+                res += entry.getKey() + ": " + value + "\n";
+            }
+        }
+        return res;
+    }
+
 }
