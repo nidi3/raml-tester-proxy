@@ -47,7 +47,7 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     private final String startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
 
     public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition, File saveDir) {
-        super(proxyTo, "");
+        super(proxyTo.startsWith("http") ? proxyTo : ("http://" + proxyTo), "");
         this.ramlDefinition = ramlDefinition;
         this.saveDir = saveDir;
     }
