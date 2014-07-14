@@ -15,8 +15,9 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.RamlDefinition;
-import guru.nidi.ramltester.RamlTester;
+import guru.nidi.ramltester.RamlLoaders;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -40,15 +41,29 @@ public class Application {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-        final RamlDefinition definition = RamlTester
+        final RamlDefinition definition = RamlLoaders
                 .loadFromUri(options.getRamlUri())
-                .assumingServletUri(options.getBaseUri());
-        final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, options.getSaveDir()));
+                .assumingBaseUri(options.getBaseUri());
+        final MultiReportAggregator aggregator = new MultiReportAggregator();
+        final Reporter reporter = new Reporter(options.getSaveDir());
+        final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, aggregator, reporter));
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
         server.setStopAtShutdown(true);
+        Runtime.getRuntime().addShutdownHook(shutdownHook(aggregator, reporter));
         server.start();
         log.info("Proxy started");
         server.join();
+    }
+
+    private static Thread shutdownHook(final MultiReportAggregator aggregator, final Reporter reporter) {
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                reporter.reportUsage(aggregator);
+            }
+        });
+        thread.setDaemon(true);
+        return thread;
     }
 }
