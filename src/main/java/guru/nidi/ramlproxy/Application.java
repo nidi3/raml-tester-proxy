@@ -41,8 +41,8 @@ public class Application {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-        final RamlDefinition definition = RamlLoaders
-                .loadFromUri(options.getRamlUri())
+        final RamlDefinition definition = RamlLoaders.absolutely()
+                .load(options.getRamlUri())
                 .assumingBaseUri(options.getBaseUri());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
         final Reporter reporter = new Reporter(options.getSaveDir());
