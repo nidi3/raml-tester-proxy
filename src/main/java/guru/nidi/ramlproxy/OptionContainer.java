@@ -19,6 +19,8 @@ import org.apache.commons.cli.*;
 
 import java.io.File;
 
+import guru.nidi.ramlproxy.Reporter.FileFormat;
+
 /**
  *
  */
@@ -28,6 +30,7 @@ public class OptionContainer {
     private File saveDir;
     private String ramlUri;
     private String baseUri;
+    private FileFormat fileFormat;
 
     public OptionContainer(String[] args) {
         final Options options = createOptions();
@@ -43,6 +46,8 @@ public class OptionContainer {
                 saveDir = new File(saveDirName);
                 saveDir.mkdirs();
             }
+            String fileFormatText = cmd.getOptionValue('f');
+            fileFormat =  fileFormatText != null ? FileFormat.valueOf(fileFormatText.toUpperCase()) : FileFormat.TEXT;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
@@ -51,6 +56,7 @@ public class OptionContainer {
         }
     }
 
+    @SuppressWarnings("static-access")
     private static Options createOptions() {
         final Options options = new Options();
         options.addOption(OptionBuilder.withDescription("The port to listen to").isRequired(true).withArgName("port").hasArg(true).create('p'));
@@ -58,6 +64,7 @@ public class OptionContainer {
         options.addOption(OptionBuilder.withDescription("RAML resource, possible schemas are classpath://, file://, http://, https://").isRequired(true).withArgName("URL").hasArg(true).create('r'));
         options.addOption(OptionBuilder.withDescription("Base URI that should be assumed").isRequired(false).withArgName("URI").hasArg(true).create('b'));
         options.addOption(OptionBuilder.withDescription("Save directory for failing requests/responses").isRequired(false).withArgName("directory").hasArg(true).create('s'));
+        options.addOption(OptionBuilder.withDescription("Format to use for report files, either text or json (defaults to text)").isRequired(false).withArgName("format").hasArg(true).create('f'));
         return options;
     }
 
@@ -79,5 +86,10 @@ public class OptionContainer {
 
     public String getBaseUri() {
         return baseUri;
+    }
+
+    public FileFormat getFileFormat()
+    {
+        return fileFormat;
     }
 }
