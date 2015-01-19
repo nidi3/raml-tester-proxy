@@ -45,7 +45,7 @@ public class Application {
                 .load(options.getRamlUri())
                 .assumingBaseUri(options.getBaseUri());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
-        final Reporter reporter = new Reporter(options.getSaveDir());
+        final Reporter reporter = new Reporter(options.getSaveDir(), options.getFileFormat());
         final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, aggregator, reporter));
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
