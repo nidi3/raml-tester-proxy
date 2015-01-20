@@ -25,8 +25,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -43,10 +42,6 @@ public abstract class ServerTest {
     };
     private static RamlProxy ramlProxy;
     private SavingRamlTesterListener ramlTesterListener;
-
-    public SavingRamlTesterListener getRamlTesterListener() {
-        return ramlTesterListener;
-    }
 
     @Before
     public void initImpl() throws LifecycleException, ServletException {
@@ -70,19 +65,19 @@ public abstract class ServerTest {
         }
     }
 
-    @Before
-    public void startProxy() throws Exception {
+    public void startProxy(String target, String raml, String baseUri) throws Exception {
         ramlTesterListener = new SavingRamlTesterListener();
-        ramlProxy = RamlProxy.create(ramlTesterListener,
-                "-p", "" + proxyPort(),
-                "-t", "localhost:" + serverPort(),
-                "-r", "file://src/test/resources/guru/nidi/ramlproxy/simple.raml",
-                "-b", "http://nidi.guru/raml/v1");
+        final List<String> params = new ArrayList<>(Arrays.asList("-p", "" + proxyPort(), "-t", target, "-r", raml));
+        if (baseUri != null) {
+            params.addAll(Arrays.asList("-b", baseUri));
+        }
+        ramlProxy = RamlProxy.create(ramlTesterListener, params.toArray(new String[params.size()]));
         ramlProxy.start();
     }
 
-    public void stopProxy() throws Exception {
+    public SavingRamlTesterListener stopProxy() throws Exception {
         ramlProxy.stop();
+        return ramlTesterListener;
     }
 
     protected abstract int serverPort();

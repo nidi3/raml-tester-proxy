@@ -27,6 +27,8 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -55,39 +57,68 @@ public class SimpleTest extends ServerTest {
 
     @Before
     public void setup() {
-        client = HttpClientBuilder.create().build();
+        client = HttpClientBuilder.create().setSSLHostnameVerifier(new HostnameVerifier() {
+            @Override
+            public boolean verify(String s, SSLSession sslSession) {
+                return true;
+            }
+        }).build();
+
     }
 
     @Test
     public void simpleOk() throws Exception {
+        startProxy("http://localhost:" + serverPort(), "file://src/test/resources/guru/nidi/ramlproxy/simple.raml", "http://nidi.guru/raml/v1");
         final HttpGet get = new HttpGet(url("data"));
         final CloseableHttpResponse response = client.execute(get);
         final String res = EntityUtils.toString(response.getEntity());
-        stopProxy();
+        final SavingRamlTesterListener results = stopProxy();
+
         assertEquals("42", res);
-        final List<SavingRamlTesterListener.ReportInfo> reports = getRamlTesterListener().getReports();
+
+        final List<SavingRamlTesterListener.ReportInfo> reports = results.getReports();
         assertEquals(1, reports.size());
+
         assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
         assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
     }
 
     @Test
     public void simpleNok() throws Exception {
+        startProxy("http://localhost:" + serverPort(), "file://src/test/resources/guru/nidi/ramlproxy/simple.raml", "http://nidi.guru/raml/v1");
         final HttpGet get = new HttpGet(url("data?param=1"));
         final CloseableHttpResponse response = client.execute(get);
         final String res = EntityUtils.toString(response.getEntity());
-        stopProxy();
+        final SavingRamlTesterListener results = stopProxy();
+
         assertEquals("illegal json", res);
-        final List<SavingRamlTesterListener.ReportInfo> reports = getRamlTesterListener().getReports();
+
+        final List<SavingRamlTesterListener.ReportInfo> reports = results.getReports();
         assertEquals(1, reports.size());
+
         final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
         assertEquals(1, requestViolations.size());
         assertEquals("Query parameter 'param' on action(GET /data) is not defined", requestViolations.iterator().next());
+
         final RamlViolations responseViolations = reports.get(0).getReport().getResponseViolations();
         assertEquals(1, responseViolations.size());
         assertThat(responseViolations.iterator().next(), CoreMatchers.startsWith(
                 "Body does not match schema for action(GET /data) response(200) mime-type('application/json')\n" +
                         "Content: illegal json\n"));
+    }
+
+    @Test
+    public void httpsTest() throws Exception {
+        startProxy("https://api.github.com", "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml", null);
+        final HttpGet get = new HttpGet(url("meta"));
+        final CloseableHttpResponse response = client.execute(get);
+        final String res = EntityUtils.toString(response.getEntity());
+        final SavingRamlTesterListener results = stopProxy();
+
+        final List<SavingRamlTesterListener.ReportInfo> reports = results.getReports();
+        assertEquals(1, reports.size());
+        assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
+        assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
     }
 
     private static class TestServlet extends HttpServlet {

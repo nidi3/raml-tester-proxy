@@ -20,8 +20,11 @@ import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.proxy.ProxyServlet;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -71,5 +74,15 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
         final RamlReport report = ramlDefinition.testAgainst(request, response);
         aggregator.addReport(report);
         listener.onViolations(report, request, response);
+    }
+
+    @Override
+    protected HttpClient newHttpClient() {
+        return new HttpClient(new SslContextFactory());
+    }
+
+    @Override
+    protected void customizeProxyRequest(Request proxyRequest, HttpServletRequest request) {
+        proxyRequest.getHeaders().remove("Host");
     }
 }

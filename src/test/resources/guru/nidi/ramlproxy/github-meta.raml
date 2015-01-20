@@ -1,0 +1,17 @@
+#%RAML 0.8
+---
+title: gitbug-meta
+baseUri: https://api.github.com
+version: v1
+
+/meta:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include github-meta.json
+        headers:
+          X-{?}:
+          Access-Control-{?}:
+          Content-Security-Policy:

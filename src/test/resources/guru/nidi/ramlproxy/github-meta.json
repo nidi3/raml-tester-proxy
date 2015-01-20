@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "properties": {
+    "git": {"type": "array"},
+    "hooks": {"type": "array"},
+    "github_services_sha": {"type": "string"},
+    "verifiable_password_authentication": {"type": "boolean"}
+  }
+}
