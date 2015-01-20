@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -19,6 +20,7 @@
 
     <properties>
         <jetty-version>9.1.5.v20140505</jetty-version>
+        <tomcat.version>7.0.30</tomcat.version>
     </properties>
 
     <build>
@@ -45,7 +47,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>guru.nidi.ramlproxy.Application</mainClass>
+                            <mainClass>guru.nidi.ramlproxy.RamlProxy</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -85,6 +87,32 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-proxy</artifactId>
             <version>${jetty-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>[4.7,)</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>${tomcat.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-logging-juli</artifactId>
+            <version>${tomcat.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <version>${tomcat.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

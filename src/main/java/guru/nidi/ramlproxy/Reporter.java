@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  *
  */
-public class Reporter {
+public class Reporter implements RamlTesterListener {
     private static final byte[] NO_CONTENT = "No content".getBytes();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -48,7 +48,8 @@ public class Reporter {
         this.saveDir = saveDir;
     }
 
-    public void reportViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    @Override
+    public void onViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         if (!report.isEmpty()) {
             final long idValue = id.incrementAndGet();
             logViolations(report, request, idValue);
@@ -60,7 +61,8 @@ public class Reporter {
         log.error("<{}> {}\n           Request:  {}\n           Response: {}", idValue, formatRequest(request), report.getRequestViolations(), report.getResponseViolations());
     }
 
-    public void reportUsage(MultiReportAggregator aggregator) {
+    @Override
+    public void onUsage(MultiReportAggregator aggregator) {
         for (Map.Entry<String, Usage> entry : aggregator.usages()) {
             final Usage usage = entry.getValue();
             final String s = unused(usage.getUnusedResources(), "resources")

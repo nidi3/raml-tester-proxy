@@ -35,13 +35,13 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
 
     private final RamlDefinition ramlDefinition;
     private final MultiReportAggregator aggregator;
-    private final Reporter reporter;
+    private final RamlTesterListener listener;
 
-    public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, Reporter reporter) {
+    public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
         super(proxyTo.startsWith("http") ? proxyTo : ("http://" + proxyTo), "");
         this.ramlDefinition = ramlDefinition;
         this.aggregator = aggregator;
-        this.reporter = reporter;
+        this.listener = listener;
 
         aggregator.addReport(new RamlReport(ramlDefinition.getRaml()));
     }
@@ -70,6 +70,6 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     private void test(ServletRamlRequest request, ServletRamlResponse response) {
         final RamlReport report = ramlDefinition.testAgainst(request, response);
         aggregator.addReport(report);
-        reporter.reportViolations(report, request, response);
+        listener.onViolations(report, request, response);
     }
 }

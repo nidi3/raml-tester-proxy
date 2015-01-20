@@ -27,17 +27,26 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public class Application {
-    private final static Logger log = LoggerFactory.getLogger(Application.class);
+public class RamlProxy {
+    private final static Logger log = LoggerFactory.getLogger(RamlProxy.class);
+    private final Server server;
+    private final Thread shutdownHook;
 
     public static void main(String[] args) throws Exception {
-        LogConfigurer.init();
-        final OptionContainer optionContainer = new OptionContainer(args);
-        start(optionContainer);
+        create(null, args).startAndWait();
     }
 
-    private static void start(OptionContainer options) throws Exception {
-        final Server server = new Server(options.getPort());
+    public static RamlProxy create(RamlTesterListener listener, String... args) throws Exception {
+        LogConfigurer.init();
+        final OptionContainer optionContainer = new OptionContainer(args);
+        return new RamlProxy(listener, optionContainer);
+    }
+
+    public RamlProxy(RamlTesterListener listener, OptionContainer options) {
+        if (listener == null) {
+            listener = new Reporter(options.getSaveDir());
+        }
+        server = new Server(options.getPort());
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
@@ -45,22 +54,35 @@ public class Application {
                 .load(options.getRamlUri())
                 .assumingBaseUri(options.getBaseUri());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
-        final Reporter reporter = new Reporter(options.getSaveDir());
-        final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, aggregator, reporter));
+        final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, aggregator, listener));
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
         server.setStopAtShutdown(true);
-        Runtime.getRuntime().addShutdownHook(shutdownHook(aggregator, reporter));
+        shutdownHook = shutdownHook(aggregator, listener);
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+
+    public void start() throws Exception {
         server.start();
         log.info("Proxy started");
+    }
+
+    public void startAndWait() throws Exception {
+        start();
         server.join();
     }
 
-    private static Thread shutdownHook(final MultiReportAggregator aggregator, final Reporter reporter) {
+    public void stop() throws Exception {
+        server.stop();
+        shutdownHook.start();
+        shutdownHook.join();
+    }
+
+    private static Thread shutdownHook(final MultiReportAggregator aggregator, final RamlTesterListener listener) {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                reporter.reportUsage(aggregator);
+                listener.onUsage(aggregator);
             }
         });
         thread.setDaemon(true);
