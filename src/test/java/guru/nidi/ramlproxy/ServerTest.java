@@ -32,16 +32,12 @@ import java.util.*;
  */
 public abstract class ServerTest {
     private static Tomcat tomcat;
-    private static Server server;
-    private static Context ctx;
     private static Set<Class<?>> inited = new HashSet<>();
     private final static JarScanner NO_SCAN = new JarScanner() {
         @Override
         public void scan(ServletContext context, ClassLoader classloader, JarScannerCallback callback, Set<String> jarsToSkip) {
         }
     };
-    private static RamlProxy ramlProxy;
-    private SavingRamlTesterListener ramlTesterListener;
 
     @Before
     public void initImpl() throws LifecycleException, ServletException {
@@ -53,31 +49,16 @@ public abstract class ServerTest {
             tomcat = new Tomcat();
             tomcat.setPort(serverPort());
             tomcat.setBaseDir(".");
-            ctx = tomcat.addWebapp("/", "src/test");
+            Context ctx = tomcat.addWebapp("/", "src/test");
             ctx.setJarScanner(NO_SCAN);
             ((Host) ctx.getParent()).setAppBase("");
 
             init(ctx);
 
             tomcat.start();
-            server = tomcat.getServer();
+            Server server = tomcat.getServer();
             server.start();
         }
-    }
-
-    public void startProxy(String target, String raml, String baseUri) throws Exception {
-        ramlTesterListener = new SavingRamlTesterListener();
-        final List<String> params = new ArrayList<>(Arrays.asList("-p", "" + proxyPort(), "-t", target, "-r", raml));
-        if (baseUri != null) {
-            params.addAll(Arrays.asList("-b", baseUri));
-        }
-        ramlProxy = RamlProxy.create(ramlTesterListener, params.toArray(new String[params.size()]));
-        ramlProxy.start();
-    }
-
-    public SavingRamlTesterListener stopProxy() throws Exception {
-        ramlProxy.stop();
-        return ramlTesterListener;
     }
 
     protected abstract int serverPort();
@@ -99,5 +80,17 @@ public abstract class ServerTest {
             }
             tomcat.destroy();
         }
+    }
+
+    protected Map<Object, Object> map(Object... keysValues) {
+        final Map<Object, Object> map = new HashMap<>();
+        for (int i = 0; i < keysValues.length; i += 2) {
+            map.put(keysValues[i], keysValues[i + 1]);
+        }
+        return map;
+    }
+
+    protected List<Object> list(Object... values) {
+        return Arrays.asList(values);
     }
 }

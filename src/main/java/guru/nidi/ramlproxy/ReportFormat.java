@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2014 Stefan Niederhauser (nidin@gmx.ch)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,48 +21,33 @@ import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.model.Values;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
-*
-*/
+ *
+ */
 public enum ReportFormat {
     TEXT("log") {
         @Override
-        String formatUsage(Reporter reporter, String key, Map<String, Set<String>> unuseds) throws IOException {
-            return reporter.usageToString(unuseds);
+        public String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException {
+            return describedUsage.toString();
         }
 
         @Override
-        String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            return violationsToString(report, request, response);
-        }
-
-        private String violationsToString(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
+        public String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
             StringBuilder sb = new StringBuilder();
             sb.append("Request violations: ").append(report.getRequestViolations()).append("\n\n");
             sb.append(Reporter.formatRequest(request)).append("\n");
             sb.append(formatHeaders(request.getHeaderValues())).append("\n");
-            sb.append(request.getContent() == null ? Reporter.NO_CONTENT : new String(request.getContent(), encoding(request)));
+            sb.append(Reporter.content(request, request.getCharacterEncoding()));
             sb.append("\n\n\nResponse violations: ").append(report.getResponseViolations()).append("\n\n");
             sb.append(formatHeaders(response.getHeaderValues())).append("\n");
-            sb.append(response.getContent() == null ? Reporter.NO_CONTENT : new String(response.getContent(), encoding(response)));
+            sb.append(Reporter.content(response, response.getCharacterEncoding()));
             return sb.toString();
-        }
-
-        private String encoding(ServletRamlRequest request) {
-            return StringUtils.defaultIfBlank(request.getCharacterEncoding(), Charset.defaultCharset().name());
-        }
-
-        private String encoding(ServletRamlResponse response) {
-            return StringUtils.defaultIfBlank(response.getCharacterEncoding(), Charset.defaultCharset().name());
         }
 
         private String formatHeaders(Values values) {
@@ -65,31 +65,23 @@ public enum ReportFormat {
         private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
         @Override
-        String formatUsage(Reporter reporter, String key, Map<String, Set<String>> unuseds) throws IOException {
-            return usageToJson(key, unuseds);
-        }
-
-        protected String usageToJson(String key, Map<String, Set<String>> unuseds) throws IOException {
+        public String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException {
             Map<String, Object> json = new HashMap<>();
             json.put("context", key);
-            json.put("unused", unuseds);
+            json.put("unused", describedUsage.asMap());
             return OBJECT_MAPPER.writeValueAsString(json);
         }
 
         @Override
-        String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            return violationsToJson(idValue, report, request, response);
-        }
-
-        private String violationsToJson(long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
+        public String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
             Map<String, Object> json = new HashMap<>();
             json.put("id", idValue);
             json.put("request violations", Lists.newArrayList(report.getRequestViolations()));
             json.put("request", Reporter.formatRequest(request));
-            json.put("request headers", request.getHeaderValues());
+            json.put("request headers", request.getHeaderValues().asMap());
             json.put("response violations", Lists.newArrayList(report.getResponseViolations()));
-            json.put("response", (response.getContent() == null ? Reporter.NO_CONTENT : response.getContent()));
-            json.put("response headers", response.getHeaderValues());
+            json.put("response", Reporter.content(response, response.getCharacterEncoding()));
+            json.put("response headers", response.getHeaderValues().asMap());
             return OBJECT_MAPPER.writeValueAsString(json);
         }
 
@@ -101,7 +93,7 @@ public enum ReportFormat {
         this.fileExtension = fileExtension;
     }
 
-    abstract String formatUsage(Reporter reporter, String key, Map<String, Set<String>> unuseds) throws IOException;
+    public abstract String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException;
 
-    abstract String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
+    public abstract String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
 }

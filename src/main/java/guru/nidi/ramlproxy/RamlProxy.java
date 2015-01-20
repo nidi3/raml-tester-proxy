@@ -27,25 +27,25 @@ import org.slf4j.LoggerFactory;
 /**
  *
  */
-public class RamlProxy {
+public class RamlProxy<T extends RamlTesterListener> {
     private final static Logger log = LoggerFactory.getLogger(RamlProxy.class);
     private final Server server;
     private final Thread shutdownHook;
+    private final T listener;
 
     public static void main(String[] args) throws Exception {
-        create(null, args).startAndWait();
+        final OptionContainer options = new OptionContainer(args);
+        RamlTesterListener listener = new Reporter(options.getSaveDir(), options.getFileFormat());
+        create(listener, options).startAndWait();
     }
 
-    public static RamlProxy create(RamlTesterListener listener, String... args) throws Exception {
+    public static <T extends RamlTesterListener> RamlProxy<T> create(T listener, OptionContainer options) throws Exception {
         LogConfigurer.init();
-        final OptionContainer optionContainer = new OptionContainer(args);
-        return new RamlProxy(listener, optionContainer);
+        return new RamlProxy<T>(listener, options);
     }
 
-    public RamlProxy(RamlTesterListener listener, OptionContainer options) {
-        if (listener == null) {
-            listener = new Reporter(options.getSaveDir(), options.getFileFormat());
-        }
+    public RamlProxy(T listener, OptionContainer options) {
+        this.listener = listener;
         server = new Server(options.getPort());
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -60,6 +60,10 @@ public class RamlProxy {
         server.setStopAtShutdown(true);
         shutdownHook = shutdownHook(aggregator, listener);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+
+    public T getListener() {
+        return listener;
     }
 
     public void start() throws Exception {

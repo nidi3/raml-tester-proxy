@@ -19,18 +19,29 @@ import org.apache.commons.cli.*;
 
 import java.io.File;
 
-import guru.nidi.ramlproxy.Reporter.FileFormat;
-
 /**
  *
  */
 public class OptionContainer {
     private int port;
     private String target;
-    private File saveDir;
     private String ramlUri;
     private String baseUri;
-    private FileFormat fileFormat;
+    private File saveDir;
+    private ReportFormat fileFormat;
+
+    public OptionContainer(int port, String target, String ramlUri, String baseUri) {
+        this(port, target, ramlUri, baseUri, null, null);
+    }
+
+    public OptionContainer(int port, String target, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat) {
+        this.port = port;
+        this.target = target;
+        this.ramlUri = ramlUri;
+        this.baseUri = baseUri;
+        this.saveDir = saveDir;
+        this.fileFormat = fileFormat;
+    }
 
     public OptionContainer(String[] args) {
         final Options options = createOptions();
@@ -47,7 +58,7 @@ public class OptionContainer {
                 saveDir.mkdirs();
             }
             String fileFormatText = cmd.getOptionValue('f');
-            fileFormat =  fileFormatText != null ? FileFormat.valueOf(fileFormatText.toUpperCase()) : FileFormat.TEXT;
+            fileFormat = fileFormatText != null ? ReportFormat.valueOf(fileFormatText.toUpperCase()) : ReportFormat.TEXT;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
@@ -88,8 +99,7 @@ public class OptionContainer {
         return baseUri;
     }
 
-    public FileFormat getFileFormat()
-    {
+    public ReportFormat getFileFormat() {
         return fileFormat;
     }
 }
