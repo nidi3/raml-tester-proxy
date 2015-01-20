@@ -44,7 +44,7 @@ public class RamlProxy {
 
     public RamlProxy(RamlTesterListener listener, OptionContainer options) {
         if (listener == null) {
-            listener = new Reporter(options.getSaveDir());
+            listener = new Reporter(options.getSaveDir(), options.getFileFormat());
         }
         server = new Server(options.getPort());
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
