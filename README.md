@@ -1,4 +1,4 @@
-raml-tester-proxy
+raml-tester-proxy [![Build Status](https://travis-ci.org/nidi3/raml-tester-proxy.svg?branch=master)](https://travis-ci.org/nidi3/raml-tester-proxy)
 =================
 
 A standalone proxy that tests if requests/responses are raml compliant.
