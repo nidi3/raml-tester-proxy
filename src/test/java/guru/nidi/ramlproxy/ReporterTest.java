@@ -1,0 +1,102 @@
+/*
+ * Copyright (C) 2014 Stefan Niederhauser (nidin@gmx.ch)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package guru.nidi.ramlproxy;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.catalina.Context;
+import org.apache.catalina.startup.Tomcat;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.startsWith;
+import static org.junit.Assert.*;
+
+/**
+ *
+ */
+public class ReporterTest extends ServerTest {
+    private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
+
+    @Override
+    protected int serverPort() {
+        return 8081;
+    }
+
+    @Override
+    protected int proxyPort() {
+        return 8091;
+    }
+
+    @Override
+    protected void init(Context ctx) {
+        Tomcat.addServlet(ctx, "app", new SimpleServlet());
+        ctx.addServletMapping("/*", "app");
+    }
+
+    @Test
+    public void reporterText() throws Exception {
+        final Reporter reporter = reporterTest(ReportFormat.TEXT);
+        assertTrue(reporter.usageFile("simple").exists());
+    }
+
+    @Test
+    public void reporterJson() throws Exception {
+        final Reporter reporter = reporterTest(ReportFormat.JSON);
+        final ObjectMapper mapper = new ObjectMapper();
+        assertEquals(map("context", "simple",
+                        "unused", map(
+                                "request headers", list("head in GET /data"),
+                                "form parameters", list("a in POST /data (application/x-www-form-urlencoded)"),
+                                "response headers", list("rh in GET /data -> 200"),
+                                "response codes", list("201 in GET /data"),
+                                "resources", list("/other"),
+                                "query parameters", list("q in GET /data"),
+                                "actions", list("POST /data"))),
+                mapper.readValue(reporter.usageFile("simple"), Map.class));
+
+        final Map actual = mapper.readValue(reporter.violationsFile(1), Map.class);
+        final List<String> resVio = (List<String>) actual.get("response violations");
+        assertThat(resVio.get(0), startsWith("Body does not match schema for action(GET /data) response(200) mime-type('application/json')\nContent: illegal json\n"));
+        assertEquals(map("id", 1,
+                        "request", "GET http://localhost:" + proxyPort() + "/data?param=1 from 127.0.0.1",
+                        "request headers", map(
+                                "Connection", list("keep-alive"),
+                                "User-Agent", ((Map) actual.get("request headers")).get("User-Agent"),
+                                "Host", list("localhost:" + proxyPort()),
+                                "Accept-Encoding", list("gzip,deflate")),
+                        "request violations", list("Query parameter 'param' on action(GET /data) is not defined"),
+                        "response", "illegal json",
+                        "response headers", map(
+                                "Server", list("Apache-Coyote/1.1"),
+                                "Date", ((Map) actual.get("response headers")).get("Date"),
+                                "Content-Type", list("application/json;charset=ISO-8859-1")),
+                        "response violations", resVio),
+                actual);
+    }
+
+    private Reporter reporterTest(ReportFormat format) throws Exception {
+        final Reporter reporter = new Reporter(new File("target"), format);
+        final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(proxyPort(),
+                "http://localhost:" + serverPort(), SIMPLE_RAML, "http://nidi.guru/raml/v1"));
+        final String res = executeGet(proxy, "data?param=1");
+
+        assertEquals("illegal json", res);
+        return reporter;
+    }
+}

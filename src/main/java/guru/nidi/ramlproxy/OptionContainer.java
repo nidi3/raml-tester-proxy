@@ -29,18 +29,20 @@ public class OptionContainer {
     private String baseUri;
     private File saveDir;
     private ReportFormat fileFormat;
+    private boolean ignoreXheaders;
 
     public OptionContainer(int port, String target, String ramlUri, String baseUri) {
-        this(port, target, ramlUri, baseUri, null, null);
+        this(port, target, ramlUri, baseUri, null, null, false);
     }
 
-    public OptionContainer(int port, String target, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat) {
+    public OptionContainer(int port, String target, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
         this.port = port;
         this.target = target;
         this.ramlUri = ramlUri;
         this.baseUri = baseUri;
         this.saveDir = saveDir;
         this.fileFormat = fileFormat;
+        this.ignoreXheaders = ignoreXheaders;
     }
 
     public OptionContainer(String[] args) {
@@ -52,6 +54,7 @@ public class OptionContainer {
             target = cmd.getOptionValue('t');
             ramlUri = cmd.getOptionValue('r');
             baseUri = cmd.getOptionValue('b');
+            ignoreXheaders = cmd.hasOption('i');
             String saveDirName = cmd.getOptionValue('s');
             if (saveDirName != null) {
                 saveDir = new File(saveDirName);
@@ -76,6 +79,7 @@ public class OptionContainer {
         options.addOption(OptionBuilder.withDescription("Base URI that should be assumed").isRequired(false).withArgName("URI").hasArg(true).create('b'));
         options.addOption(OptionBuilder.withDescription("Save directory for failing requests/responses").isRequired(false).withArgName("directory").hasArg(true).create('s'));
         options.addOption(OptionBuilder.withDescription("Format to use for report files, either text or json (defaults to text)").isRequired(false).withArgName("format").hasArg(true).create('f'));
+        options.addOption(OptionBuilder.withDescription("Ignore X-headers").isRequired(false).hasArg(false).create('i'));
         return options;
     }
 
@@ -101,5 +105,9 @@ public class OptionContainer {
 
     public ReportFormat getFileFormat() {
         return fileFormat;
+    }
+
+    public boolean isIgnoreXheaders() {
+        return ignoreXheaders;
     }
 }

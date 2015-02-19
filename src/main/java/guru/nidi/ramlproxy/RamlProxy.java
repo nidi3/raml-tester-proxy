@@ -52,6 +52,7 @@ public class RamlProxy<T extends RamlTesterListener> {
         server.setHandler(context);
         final RamlDefinition definition = RamlLoaders.absolutely()
                 .load(options.getRamlUri())
+                .ignoringXheaders(options.isIgnoreXheaders())
                 .assumingBaseUri(options.getBaseUri() != null ? options.getBaseUri() : options.getTarget());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
         final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(options.getTarget(), definition, aggregator, listener));
