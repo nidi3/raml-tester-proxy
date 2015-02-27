@@ -40,8 +40,7 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     private final MultiReportAggregator aggregator;
     private final RamlTesterListener listener;
 
-    public TesterProxyServlet(String proxyTo, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
-        super(proxyTo.startsWith("http") ? proxyTo : ("http://" + proxyTo), "");
+    public TesterProxyServlet(RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
         this.ramlDefinition = ramlDefinition;
         this.aggregator = aggregator;
         this.listener = listener;
@@ -55,15 +54,15 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     }
 
     @Override
-    protected void onResponseSuccess(HttpServletRequest request, HttpServletResponse response, Response proxyResponse) {
-        test(request, response);
-        super.onResponseSuccess(request, response, proxyResponse);
+    protected void onProxyResponseSuccess(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Response serverResponse) {
+        test(clientRequest, proxyResponse);
+        super.onProxyResponseSuccess(clientRequest, proxyResponse, serverResponse);
     }
 
     @Override
-    protected void onResponseFailure(HttpServletRequest request, HttpServletResponse response, Response proxyResponse, Throwable failure) {
-        test(request, response);
-        super.onResponseFailure(request, response, proxyResponse, failure);
+    protected void onProxyResponseFailure(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Response serverResponse, Throwable failure) {
+        test(clientRequest, proxyResponse);
+        super.onProxyResponseFailure(clientRequest, proxyResponse, serverResponse, failure);
     }
 
     private void test(HttpServletRequest request, HttpServletResponse response) {
@@ -82,7 +81,8 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     }
 
     @Override
-    protected void customizeProxyRequest(Request proxyRequest, HttpServletRequest request) {
+    protected void sendProxyRequest(HttpServletRequest request, HttpServletResponse response, Request proxyRequest) {
         proxyRequest.getHeaders().remove("Host");
+        super.sendProxyRequest(request, response, proxyRequest);
     }
 }

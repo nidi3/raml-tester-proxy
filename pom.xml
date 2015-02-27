@@ -18,8 +18,8 @@
     <inceptionYear>2014</inceptionYear>
 
     <properties>
-        <jetty-version>9.1.5.v20140505</jetty-version>
-        <tomcat.version>7.0.30</tomcat.version>
+        <jetty-version>9.2.9.v20150224</jetty-version>
+        <tomcat.version>7.0.59</tomcat.version>
     </properties>
 
     <build>
@@ -65,7 +65,7 @@
         <dependency>
             <groupId>guru.nidi.raml</groupId>
             <artifactId>raml-tester</artifactId>
-            <version>0.0.10-SNAPSHOT</version>
+            <version>0.0.10</version>
         </dependency>
         <dependency>
             <groupId>commons-cli</groupId>

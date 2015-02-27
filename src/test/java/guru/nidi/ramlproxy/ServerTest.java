@@ -71,7 +71,7 @@ public abstract class ServerTest {
             tomcat = new Tomcat();
             tomcat.setPort(serverPort());
             tomcat.setBaseDir(".");
-            Context ctx = tomcat.addWebapp("/", "src/test");
+            Context ctx = tomcat.addWebapp("", "src/test");
             ctx.setJarScanner(NO_SCAN);
             ((Host) ctx.getParent()).setAppBase("");
 

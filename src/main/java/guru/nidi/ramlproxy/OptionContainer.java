@@ -91,6 +91,10 @@ public class OptionContainer {
         return target;
     }
 
+    public String getTargetUrl(){
+        return target.startsWith("http") ? target : ("http://" + target);
+    }
+
     public String getRamlUri() {
         return ramlUri;
     }
