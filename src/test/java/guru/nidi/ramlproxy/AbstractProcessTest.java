@@ -72,7 +72,7 @@ public class AbstractProcessTest {
 
     protected void stopProxyProcess() {
         if (proc[0] != null) {
-            proc[0].destroyForcibly();
+            proc[0].destroy();
         }
     }
 
