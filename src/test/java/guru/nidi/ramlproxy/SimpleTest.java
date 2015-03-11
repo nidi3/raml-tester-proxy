@@ -29,7 +29,7 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class SimpleTest extends ServerTest {
+public class SimpleTest extends AbstractServerTest {
     private static final String GITHUB_RAML = "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml";
     private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
 

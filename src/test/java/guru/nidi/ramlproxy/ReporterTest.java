@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class ReporterTest extends ServerTest {
+public class ReporterTest extends AbstractServerTest {
     private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
 
     @Override

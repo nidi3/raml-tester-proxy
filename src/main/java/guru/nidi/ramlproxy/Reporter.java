@@ -48,7 +48,11 @@ public class Reporter implements RamlTesterListener {
     public Reporter(File saveDir, ReportFormat reportFormat) {
         this.saveDir = saveDir;
         this.reportFormat = reportFormat;
-        log.info("Reporting in " + reportFormat + " format into: " + saveDir);
+        if (saveDir == null) {
+            log.info("NOT reporting into a file.");
+        } else {
+            log.info("Reporting in {} format into: {}", reportFormat, saveDir);
+        }
     }
 
     @Override

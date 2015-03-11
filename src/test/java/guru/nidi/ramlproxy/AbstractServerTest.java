@@ -38,7 +38,7 @@ import java.util.*;
 /**
  *
  */
-public abstract class ServerTest {
+public abstract class AbstractServerTest {
     private static Tomcat tomcat;
     private static Set<Class<?>> inited = new HashSet<>();
 
