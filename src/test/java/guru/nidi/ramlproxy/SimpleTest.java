@@ -17,10 +17,12 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.SavingRamlTesterListener.ReportInfo;
 import guru.nidi.ramltester.core.RamlViolations;
-import org.apache.catalina.Context;
-import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.LifecycleException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.servlet.ServletException;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -29,31 +31,27 @@ import static org.junit.Assert.*;
 /**
  *
  */
-public class SimpleTest extends AbstractServerTest {
+public class SimpleTest {
     private static final String GITHUB_RAML = "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml";
     private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
+    private static TomcatServer tomcat;
+    private HttpSender sender = new HttpSender(8090);
 
-    @Override
-    protected int serverPort() {
-        return 8080;
+    @BeforeClass
+    public static void start() throws ServletException, LifecycleException {
+        tomcat = new TomcatServer(8080, new SimpleServlet());
     }
 
-    @Override
-    protected int proxyPort() {
-        return 8090;
-    }
-
-    @Override
-    protected void init(Context ctx) {
-        Tomcat.addServlet(ctx, "app", new SimpleServlet());
-        ctx.addServletMapping("/*", "app");
+    @AfterClass
+    public static void end() throws LifecycleException {
+        tomcat.close();
     }
 
     @Test
     public void simpleOk() throws Exception {
-        final OptionContainer options = new OptionContainer(proxyPort(), "http://localhost:" + serverPort(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
+        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        final String res = executeGet(proxy, "data");
+        final String res = sender.executeGet(proxy, "data");
 
         assertEquals("42", res);
 
@@ -66,9 +64,9 @@ public class SimpleTest extends AbstractServerTest {
 
     @Test
     public void simpleNok() throws Exception {
-        final OptionContainer options = new OptionContainer(proxyPort(), "http://localhost:" + serverPort(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
+        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        final String res = executeGet(proxy, "data?param=1");
+        final String res = sender.executeGet(proxy, "data?param=1");
 
         assertEquals("illegal json", res);
 
@@ -88,9 +86,9 @@ public class SimpleTest extends AbstractServerTest {
 
     @Test
     public void httpsTest() throws Exception {
-        final OptionContainer options = new OptionContainer(proxyPort(), "https://api.github.com", GITHUB_RAML, null);
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", GITHUB_RAML, null);
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        executeGet(proxy, "meta");
+        sender.executeGet(proxy, "meta");
 
         final List<ReportInfo> reports = proxy.getListener().getReports();
         assertEquals(1, reports.size());
@@ -102,9 +100,9 @@ public class SimpleTest extends AbstractServerTest {
 
     @Test
     public void testIgnoreX() throws Exception {
-        final OptionContainer options = new OptionContainer(proxyPort(), "https://api.github.com", GITHUB_RAML, null, null, null, true);
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", GITHUB_RAML, null, null, null, true);
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        executeGet(proxy, "meta");
+        sender.executeGet(proxy, "meta");
 
         final List<ReportInfo> reports = proxy.getListener().getReports();
         assertEquals(1, reports.size());

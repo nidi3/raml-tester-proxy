@@ -15,22 +15,44 @@
  */
 package guru.nidi.ramlproxy;
 
+import org.apache.catalina.Context;
+import org.apache.catalina.startup.Tomcat;
+
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 
 /**
-*
-*/
-class SimpleServlet extends HttpServlet {
+ *
+ */
+class SimpleServlet extends HttpServlet implements TomcatServer.ContextIniter {
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("application/json");
-        final PrintWriter out = resp.getWriter();
-        out.write(req.getParameter("param") == null ? "42" : "illegal json");
-        out.flush();
+    public void initContext(Context ctx) {
+        Tomcat.addServlet(ctx, "app", this);
+        ctx.addServletMapping("/*", "app");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        if (req.getPathInfo().startsWith("/resources")) {
+            final InputStream in = getClass().getResourceAsStream(req.getPathInfo().substring(11));
+            final ServletOutputStream out = res.getOutputStream();
+            final byte[] buf = new byte[1000];
+            int read;
+            while ((read = in.read(buf)) > 0) {
+                out.write(buf, 0, read);
+            }
+            out.flush();
+        } else {
+            res.setContentType("application/json");
+            final PrintWriter out = res.getWriter();
+            out.write(req.getParameter("param") == null ? "42" : "illegal json");
+            out.flush();
+        }
     }
 }

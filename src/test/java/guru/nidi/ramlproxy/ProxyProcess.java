@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  *
  */
-public class AbstractProcessTest {
+public class ProxyProcess implements AutoCloseable {
     private static final Pattern VERSION = Pattern.compile("<version>(.+?)</version>");
 
     private static String version() throws IOException {
@@ -33,7 +33,7 @@ public class AbstractProcessTest {
     private final Process[] proc = new Process[1];
     private final BlockingQueue<String> output = new ArrayBlockingQueue<>(1000);
 
-    protected void startProxyProcess(String... parameters) throws IOException, InterruptedException {
+    public ProxyProcess(String... parameters) throws IOException, InterruptedException {
         final String jar = "target/raml-tester-proxy-" + version() + ".jar";
         if (!new File(jar).exists()) {
             Assume.assumeTrue("jar not found", false);
@@ -62,21 +62,20 @@ public class AbstractProcessTest {
         });
         reader.setDaemon(true);
         reader.start();
-
-        String line;
-        do {
-            line = output.poll(15, TimeUnit.SECONDS);
-            System.out.println("******** " + line + " ********");
-        } while (line != null && !line.endsWith("Proxy started"));
     }
 
-    protected void stopProxyProcess() {
+    @Override
+    public void close() {
         if (proc[0] != null) {
             proc[0].destroy();
         }
     }
 
-    protected String readLine() throws InterruptedException {
-        return output.poll(1, TimeUnit.SECONDS);
+    public String readLine() throws InterruptedException {
+        return readLine(1);
+    }
+
+    public String readLine(int maxWaitSec) throws InterruptedException {
+        return output.poll(maxWaitSec, TimeUnit.SECONDS);
     }
 }

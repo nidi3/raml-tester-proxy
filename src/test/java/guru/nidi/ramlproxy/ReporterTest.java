@@ -16,37 +16,37 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.catalina.Context;
-import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.LifecycleException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.servlet.ServletException;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static guru.nidi.ramlproxy.TestUtils.list;
+import static guru.nidi.ramlproxy.TestUtils.map;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 
 /**
  *
  */
-public class ReporterTest extends AbstractServerTest {
+public class ReporterTest {
     private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
+    private static TomcatServer tomcat;
+    private HttpSender sender = new HttpSender(8091);
 
-    @Override
-    protected int serverPort() {
-        return 8081;
+    @BeforeClass
+    public static void init() throws ServletException, LifecycleException {
+        tomcat = new TomcatServer(8081, new SimpleServlet());
     }
 
-    @Override
-    protected int proxyPort() {
-        return 8091;
-    }
-
-    @Override
-    protected void init(Context ctx) {
-        Tomcat.addServlet(ctx, "app", new SimpleServlet());
-        ctx.addServletMapping("/*", "app");
+    @AfterClass
+    public static void end() throws LifecycleException {
+        tomcat.close();
     }
 
     @Test
@@ -74,11 +74,11 @@ public class ReporterTest extends AbstractServerTest {
         final List<String> resVio = (List<String>) actual.get("response violations");
         assertThat(resVio.get(0), startsWith("Body does not match schema for action(GET /data) response(200) mime-type('application/json')\nContent: illegal json\n"));
         assertEquals(map("id", 1,
-                        "request", "GET http://localhost:" + proxyPort() + "/data?param=1 from 127.0.0.1",
+                        "request", "GET " + sender.url("data?param=1 from 127.0.0.1"),
                         "request headers", map(
                                 "Connection", list("keep-alive"),
                                 "User-Agent", ((Map) actual.get("request headers")).get("User-Agent"),
-                                "Host", list("localhost:" + proxyPort()),
+                                "Host", list("localhost:" + sender.getPort()),
                                 "Accept-Encoding", list("gzip,deflate")),
                         "request violations", list("Query parameter 'param' on action(GET /data) is not defined"),
                         "response", "illegal json",
@@ -92,9 +92,9 @@ public class ReporterTest extends AbstractServerTest {
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File("target"), format);
-        final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(proxyPort(),
-                "http://localhost:" + serverPort(), SIMPLE_RAML, "http://nidi.guru/raml/v1"));
-        final String res = executeGet(proxy, "data?param=1");
+        final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
+                tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1"));
+        final String res = sender.executeGet(proxy, "data?param=1");
 
         assertEquals("illegal json", res);
         return reporter;
