@@ -64,8 +64,8 @@ public class ReporterTest {
                                 "request headers", list("head in GET /data"),
                                 "form parameters", list("a in POST /data (application/x-www-form-urlencoded)"),
                                 "response headers", list("rh in GET /data -> 200"),
-                                "response codes", list("201 in GET /data"),
-                                "resources", list("/other"),
+                                "response codes", list("201 in GET /data","201 in POST /data"),
+                                "resources", list("/other","/super/sub"),
                                 "query parameters", list("q in GET /data"),
                                 "actions", list("POST /data"))),
                 mapper.readValue(reporter.usageFile("simple"), Map.class));
