@@ -1,5 +1,6 @@
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.TestUtils.Ramls;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -15,9 +16,7 @@ public class SimpleProcessTest {
 
     @Test
     public void testGithub() throws IOException, InterruptedException {
-        try (final ProxyProcess proxy = new ProxyProcess(
-                "-p", "" + sender.getPort(), "-t", "https://api.github.com",
-                "-r", "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml")) {
+        try (final ProxyProcess proxy = new ProxyProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-r", Ramls.GITHUB)) {
             assertProxyStarted(proxy);
 
             System.out.println(sender.executeGet("meta"));
@@ -31,9 +30,7 @@ public class SimpleProcessTest {
 
     @Test
     public void testGithubIgnoringX() throws IOException, InterruptedException {
-        try (final ProxyProcess proxy = new ProxyProcess(
-                "-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i",
-                "-r", "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml")) {
+        try (final ProxyProcess proxy = new ProxyProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i", "-r", Ramls.GITHUB)) {
             assertProxyStarted(proxy);
 
             System.out.println(sender.executeGet("meta"));
@@ -53,6 +50,18 @@ public class SimpleProcessTest {
             System.out.println(sender.executeGet("meta"));
 
             assertNull(proxy.readLine());
+        }
+    }
+
+    @Test
+    public void testStopCommand() throws Exception {
+        try (final ProxyProcess proxy = new ProxyProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i", "-r", Ramls.GITHUB)) {
+            assertProxyStarted(proxy);
+            assertFalse(proxy.hasEnded());
+
+            assertEquals("Stopping proxy", sender.executeGet("@@@proxy/stop"));
+            assertEquals("Stopping proxy", proxy.readLine());
+            assertTrue(proxy.hasEnded());
         }
     }
 

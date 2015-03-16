@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.SavingRamlTesterListener.ReportInfo;
+import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
@@ -32,12 +33,6 @@ import static org.junit.Assert.*;
  *
  */
 public class SimpleTest {
-    private static class Ramls {
-        private static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
-                GITHUB = LOCATION + "github-meta.raml",
-                SIMPLE = LOCATION + "simple.raml";
-    }
-
     private static TomcatServer tomcat;
     private HttpSender sender = new HttpSender(8090);
 

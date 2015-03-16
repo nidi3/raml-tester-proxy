@@ -78,4 +78,13 @@ public class ProxyProcess implements AutoCloseable {
     public String readLine(int maxWaitSec) throws InterruptedException {
         return output.poll(maxWaitSec, TimeUnit.SECONDS);
     }
+
+    public boolean hasEnded() {
+        try {
+            proc[0].exitValue();
+            return true;
+        } catch (IllegalThreadStateException e) {
+            return false;
+        }
+    }
 }

@@ -30,17 +30,19 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  *
  */
 public class TesterProxyServlet extends ProxyServlet.Transparent {
-
+    private final RamlProxy<?> proxy;
     private final RamlDefinition ramlDefinition;
     private final MultiReportAggregator aggregator;
     private final RamlTesterListener listener;
 
-    public TesterProxyServlet(RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
+    public TesterProxyServlet(RamlProxy<?> proxy, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
+        this.proxy = proxy;
         this.ramlDefinition = ramlDefinition;
         this.aggregator = aggregator;
         this.listener = listener;
@@ -50,7 +52,33 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        super.service(new ServletRamlRequest(request), new ServletRamlResponse(response));
+        if (request.getPathInfo().startsWith("/@@@proxy")) {
+            final String command = request.getPathInfo().substring(10);
+            switch (command) {
+                case "stop":
+                    final PrintWriter writer = response.getWriter();
+                    writer.write("Stopping proxy");
+                    writer.flush();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                System.out.println("Stopping proxy");
+                                Thread.sleep(100);
+                                proxy.stop();
+                            } catch (Exception e) {
+                                System.out.println("Problem stopping proxy, killing instead: " + e);
+                                System.exit(1);
+                            }
+                        }
+                    }).start();
+                    break;
+                default:
+                    System.out.println("Ignoring unknown command '" + command + "'");
+            }
+        } else {
+            super.service(new ServletRamlRequest(request), new ServletRamlResponse(response));
+        }
     }
 
     @Override
