@@ -32,8 +32,12 @@ import static org.junit.Assert.*;
  *
  */
 public class SimpleTest {
-    private static final String GITHUB_RAML = "file://src/test/resources/guru/nidi/ramlproxy/github-meta.raml";
-    private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
+    private static class Ramls {
+        private static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
+                GITHUB = LOCATION + "github-meta.raml",
+                SIMPLE = LOCATION + "simple.raml";
+    }
+
     private static TomcatServer tomcat;
     private HttpSender sender = new HttpSender(8090);
 
@@ -49,7 +53,7 @@ public class SimpleTest {
 
     @Test
     public void simpleOk() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
+        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         final String res = sender.executeGet(proxy, "data");
 
@@ -64,7 +68,7 @@ public class SimpleTest {
 
     @Test
     public void simpleNok() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1");
+        final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         final String res = sender.executeGet(proxy, "data?param=1");
 
@@ -86,7 +90,7 @@ public class SimpleTest {
 
     @Test
     public void httpsTest() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", GITHUB_RAML, null);
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null);
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         sender.executeGet(proxy, "meta");
 
@@ -100,7 +104,7 @@ public class SimpleTest {
 
     @Test
     public void testIgnoreX() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", GITHUB_RAML, null, null, null, true);
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         sender.executeGet(proxy, "meta");
 
