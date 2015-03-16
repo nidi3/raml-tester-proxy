@@ -18,26 +18,41 @@ package guru.nidi.ramlproxy;
 import org.apache.commons.cli.*;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  *
  */
 public class OptionContainer {
+    private static final Comparator<Option> OPTION_COMPARATOR = new Comparator<Option>() {
+        private String OPTIONS = "ptmrbsfi";
+
+        @Override
+        public int compare(Option o1, Option o2) {
+            return OPTIONS.indexOf(o1.getOpt().charAt(0)) - OPTIONS.indexOf(o2.getOpt().charAt(0));
+        }
+    };
     private int port;
     private String target;
+    private File mockDir;
     private String ramlUri;
     private String baseUri;
     private File saveDir;
     private ReportFormat fileFormat;
     private boolean ignoreXheaders;
 
-    public OptionContainer(int port, String target, String ramlUri, String baseUri) {
-        this(port, target, ramlUri, baseUri, null, null, false);
+    public OptionContainer(int port, String targetOrMockDir, String ramlUri, String baseUri) {
+        this(port, targetOrMockDir.startsWith("http") ? targetOrMockDir : null,
+                targetOrMockDir.startsWith("http") ? null : new File(targetOrMockDir),
+                ramlUri, baseUri, null, null, false);
     }
 
-    public OptionContainer(int port, String target, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
+    public OptionContainer(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
         this.port = port;
         this.target = target;
+        this.mockDir = mockDir;
         this.ramlUri = ramlUri;
         this.baseUri = baseUri;
         this.saveDir = saveDir;
@@ -49,13 +64,23 @@ public class OptionContainer {
         final Options options = createOptions();
         try {
             CommandLineParser parser = new BasicParser();
-            CommandLine cmd = parser.parse(options, args);
-            port = Integer.parseInt(cmd.getOptionValue('p'));
+            CommandLine cmd = parser.parse(options, expandArgs(args));
+            port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : 8090;
             target = cmd.getOptionValue('t');
+            if ((target != null && cmd.hasOption('m')) || (target == null && !cmd.hasOption('m'))) {
+                throw new Exception("Must specify either target (-t) or mock directory (-m)");
+            }
+            if (cmd.hasOption('m')) {
+                if (!cmd.hasOption('b')) {
+                    throw new Exception("Missing option -b");
+                }
+                final String mockDirName = cmd.getOptionValue('m');
+                mockDir = (mockDirName == null || mockDirName.length() == 0) ? new File("mock-files") : new File(mockDirName);
+            }
             ramlUri = cmd.getOptionValue('r');
             baseUri = cmd.getOptionValue('b');
             ignoreXheaders = cmd.hasOption('i');
-            String saveDirName = cmd.getOptionValue('s');
+            final String saveDirName = cmd.getOptionValue('s');
             if (saveDirName != null) {
                 saveDir = new File(saveDirName);
                 saveDir.mkdirs();
@@ -65,21 +90,37 @@ public class OptionContainer {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             HelpFormatter formatter = new HelpFormatter();
+            formatter.setWidth(80);
+            formatter.setOptionComparator(OPTION_COMPARATOR);
             formatter.printHelp("java -jar raml-proxy.jar", options);
             System.exit(1);
         }
     }
 
+    private String[] expandArgs(String[] args) {
+        final List<String> res = new ArrayList<>();
+        for (String arg : args) {
+            if (arg.charAt(0) == '-' && arg.length() > 2) {
+                res.add(arg.substring(0, 2));
+                res.add(arg.substring(2));
+            } else {
+                res.add(arg);
+            }
+        }
+        return res.toArray(new String[res.size()]);
+    }
+
     @SuppressWarnings("static-access")
     private static Options createOptions() {
         final Options options = new Options();
-        options.addOption(OptionBuilder.withDescription("The port to listen to").isRequired(true).withArgName("port").hasArg(true).create('p'));
-        options.addOption(OptionBuilder.withDescription("The target uri to forward to").isRequired(true).withArgName("URL").hasArg(true).create('t'));
+        options.addOption(OptionBuilder.withDescription("The port to listen to\nDefault: 8090").isRequired(false).withArgName("port").hasArg(true).create('p'));
+        options.addOption(OptionBuilder.withDescription("The target URL to forward to").isRequired(false).withArgName("URL").hasArg(true).create('t'));
+        options.addOption(OptionBuilder.withDescription("Directory with mock files\nDefault: mock-files").isRequired(false).withArgName("directory").hasArg(false).create('m'));
         options.addOption(OptionBuilder.withDescription("RAML resource, possible schemas are classpath://, file://, http://, https://").isRequired(true).withArgName("URL").hasArg(true).create('r'));
-        options.addOption(OptionBuilder.withDescription("Base URI that should be assumed").isRequired(false).withArgName("URI").hasArg(true).create('b'));
-        options.addOption(OptionBuilder.withDescription("Save directory for failing requests/responses").isRequired(false).withArgName("directory").hasArg(true).create('s'));
-        options.addOption(OptionBuilder.withDescription("Format to use for report files, either text or json (defaults to text)").isRequired(false).withArgName("format").hasArg(true).create('f'));
-        options.addOption(OptionBuilder.withDescription("Ignore X-headers").isRequired(false).hasArg(false).create('i'));
+        options.addOption(OptionBuilder.withDescription("Base URI that should be assumed\nDefault: target URL").isRequired(false).withArgName("URI").hasArg(true).create('b'));
+        options.addOption(OptionBuilder.withDescription("Save directory for failing requests/responses\nDefault: none").isRequired(false).withArgName("directory").hasArg(true).create('s'));
+        options.addOption(OptionBuilder.withDescription("Format to use for report files, either text or json\nDefault: text").isRequired(false).withArgName("format").hasArg(true).create('f'));
+        options.addOption(OptionBuilder.withDescription("Ignore X-headers\nDefault: false").isRequired(false).hasArg(false).create('i'));
         return options;
     }
 
@@ -93,6 +134,14 @@ public class OptionContainer {
 
     public String getTargetUrl() {
         return target.startsWith("http") ? target : ("http://" + target);
+    }
+
+    public boolean isMockMode() {
+        return mockDir != null;
+    }
+
+    public File getMockDir() {
+        return mockDir;
     }
 
     public String getRamlUri() {

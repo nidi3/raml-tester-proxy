@@ -94,7 +94,7 @@ public class ReporterTest {
         final Reporter reporter = new Reporter(new File("target"), format);
         final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
                 tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1"));
-        final String res = sender.executeGet(proxy, "data?param=1");
+        final String res = sender.contentOfGet(proxy, "data?param=1");
 
         assertEquals("illegal json", res);
         return reporter;

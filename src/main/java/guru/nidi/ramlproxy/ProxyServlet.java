@@ -15,68 +15,40 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramltester.MultiReportAggregator;
-import guru.nidi.ramltester.RamlDefinition;
-import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.proxy.ProxyServlet;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  *
  */
-public class TesterProxyServlet extends ProxyServlet.Transparent {
-    private final RamlProxy<?> proxy;
-    private final RamlDefinition ramlDefinition;
-    private final MultiReportAggregator aggregator;
-    private final RamlTesterListener listener;
+public class ProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transparent {
+    private final static Logger log = LoggerFactory.getLogger(ProxyServlet.class);
+    private final TesterFilter testerFilter;
 
-    public TesterProxyServlet(RamlProxy<?> proxy, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
-        this.proxy = proxy;
-        this.ramlDefinition = ramlDefinition;
-        this.aggregator = aggregator;
-        this.listener = listener;
+    public ProxyServlet(TesterFilter testerFilter) {
+        this.testerFilter = testerFilter;
+    }
 
-        aggregator.addReport(new RamlReport(ramlDefinition.getRaml()));
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        log.info("Proxy started");
     }
 
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (request.getPathInfo().startsWith("/@@@proxy")) {
-            final String command = request.getPathInfo().substring(10);
-            switch (command) {
-                case "stop":
-                    final PrintWriter writer = response.getWriter();
-                    writer.write("Stopping proxy");
-                    writer.flush();
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                System.out.println("Stopping proxy");
-                                Thread.sleep(100);
-                                proxy.stop();
-                            } catch (Exception e) {
-                                System.out.println("Problem stopping proxy, killing instead: " + e);
-                                System.exit(1);
-                            }
-                        }
-                    }).start();
-                    break;
-                default:
-                    System.out.println("Ignoring unknown command '" + command + "'");
-            }
-        } else {
+        if (!testerFilter.handleCommands(request, response)) {
             super.service(new ServletRamlRequest(request), new ServletRamlResponse(response));
         }
     }
@@ -94,13 +66,7 @@ public class TesterProxyServlet extends ProxyServlet.Transparent {
     }
 
     private void test(HttpServletRequest request, HttpServletResponse response) {
-        test((ServletRamlRequest) request, (ServletRamlResponse) response);
-    }
-
-    private void test(ServletRamlRequest request, ServletRamlResponse response) {
-        final RamlReport report = ramlDefinition.testAgainst(request, response);
-        aggregator.addReport(report);
-        listener.onViolations(report, request, response);
+        testerFilter.test((ServletRamlRequest) request, (ServletRamlResponse) response);
     }
 
     @Override

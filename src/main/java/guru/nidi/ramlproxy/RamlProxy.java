@@ -19,23 +19,24 @@ import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.RamlLoaders;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import javax.servlet.DispatcherType;
+import java.util.EnumSet;
 
 /**
  *
  */
 public class RamlProxy<T extends RamlTesterListener> {
-    private final static Logger log = LoggerFactory.getLogger(RamlProxy.class);
     private final Server server;
     private final Thread shutdownHook;
     private final T listener;
 
     public static void main(String[] args) throws Exception {
         final OptionContainer options = new OptionContainer(args);
-        RamlTesterListener listener = new Reporter(options.getSaveDir(), options.getFileFormat());
+        final RamlTesterListener listener = new Reporter(options.getSaveDir(), options.getFileFormat());
         create(listener, options).startAndWait();
     }
 
@@ -55,9 +56,16 @@ public class RamlProxy<T extends RamlTesterListener> {
                 .ignoringXheaders(options.isIgnoreXheaders())
                 .assumingBaseUri(options.getBaseOrTargetUri());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
-        final ServletHolder servlet = new ServletHolder(new TesterProxyServlet(this, definition, aggregator, listener));
+        final TesterFilter testerFilter = new TesterFilter(this, definition, aggregator, listener);
+        final ServletHolder servlet;
+        if (options.isMockMode()) {
+            servlet = new ServletHolder(new MockServlet(options.getMockDir()));
+            context.addFilter(new FilterHolder(testerFilter), "/*", EnumSet.allOf(DispatcherType.class));
+        } else {
+            servlet = new ServletHolder(new ProxyServlet(testerFilter));
+            servlet.setInitParameter("proxyTo", options.getTargetUrl());
+        }
         servlet.setInitOrder(1);
-        servlet.setInitParameter("proxyTo", options.getTargetUrl());
         context.addServlet(servlet, "/*");
         server.setStopAtShutdown(true);
         shutdownHook = shutdownHook(aggregator, listener);
@@ -70,7 +78,6 @@ public class RamlProxy<T extends RamlTesterListener> {
 
     public void start() throws Exception {
         server.start();
-        log.info("Proxy started");
     }
 
     public void startAndWait() throws Exception {
