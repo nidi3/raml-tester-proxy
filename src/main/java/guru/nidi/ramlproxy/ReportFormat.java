@@ -39,15 +39,13 @@ public enum ReportFormat {
 
         @Override
         public String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Request violations: ").append(report.getRequestViolations()).append("\n\n");
-            sb.append(Reporter.formatRequest(request)).append("\n");
-            sb.append(formatHeaders(request.getHeaderValues())).append("\n");
-            sb.append(Reporter.content(request, request.getCharacterEncoding()));
-            sb.append("\n\n\nResponse violations: ").append(report.getResponseViolations()).append("\n\n");
-            sb.append(formatHeaders(response.getHeaderValues())).append("\n");
-            sb.append(Reporter.content(response, response.getCharacterEncoding()));
-            return sb.toString();
+            return "Request violations: " + report.getRequestViolations() + "\n\n" +
+                    Reporter.formatRequest(request) + "\n" +
+                    formatHeaders(request.getHeaderValues()) + "\n" +
+                    Reporter.content(request, request.getCharacterEncoding()) +
+                    "\n\n\nResponse violations: " + report.getResponseViolations() + "\n\n" +
+                    formatHeaders(response.getHeaderValues()) + "\n" +
+                    Reporter.content(response, response.getCharacterEncoding());
         }
 
         private String formatHeaders(Values values) {
