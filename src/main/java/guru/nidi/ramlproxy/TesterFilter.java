@@ -41,7 +41,6 @@ public class TesterFilter implements Filter {
         this.ramlDefinition = ramlDefinition;
         this.aggregator = aggregator;
         this.listener = listener;
-        aggregator.addReport(new RamlReport(ramlDefinition.getRaml()));
     }
 
     @Override

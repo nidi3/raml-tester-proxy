@@ -99,7 +99,7 @@ public class ProxyTest {
 
     @Test
     public void testIgnoreX() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", null, Ramls.GITHUB, null, null, null, true);
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
         final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         sender.contentOfGet(proxy, "meta");
 

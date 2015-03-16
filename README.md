@@ -28,3 +28,5 @@ The files in directory `mock-data` will be used as responses.
 if one exists.
 - Responses can be specialized by prepending the HTTP method:
 A GET request will first search for `mock-data/admin/GET-user.json` and then for the general `mock-data/admin/user.json`.
+- If a file named `mock-data/admin/META-user.json` exists, it is used to define response code and reponse headers.
+An example file looks like `{ "code": 202, "headers": {"X-meta": "get!"} }`.

@@ -39,7 +39,7 @@ public class MockTest {
 
     @Before
     public void init() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml");
+        final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
         proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
         proxy.start();
     }
@@ -52,23 +52,27 @@ public class MockTest {
     @Test
     public void simpleOk() throws Exception {
         final HttpResponse res = sender.get("v1/data");
+        Thread.sleep(10);
         assertEquals("42", sender.content(res));
+        assertEquals(202, res.getStatusLine().getStatusCode());
+        assertEquals("get!", res.getFirstHeader("X-meta").getValue());
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertTrue(reports.isEmpty());
+        final RamlReport report = assertOneReport();
+        final Iterator<String> iter = report.getResponseViolations().iterator();
+        assertEquals("Response(202) is not defined on action(GET /data)", iter.next());
     }
 
     @Test
     public void multipleFiles() throws Exception {
         final HttpResponse res = sender.get("v1/multi");
+        Thread.sleep(10);
+
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = sender.content(res);
         assertThat(content, containsString("No or multiple file 'multi' found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
-        final RamlReport report = reports.get(0).getReport();
+        final RamlReport report = assertOneReport();
         final Iterator<String> iter = report.getRequestViolations().iterator();
         assertEquals("Resource '/multi' is not defined", iter.next());
     }
@@ -76,14 +80,14 @@ public class MockTest {
     @Test
     public void noFile() throws Exception {
         final HttpResponse res = sender.get("v1/notExisting");
+        Thread.sleep(10);
+
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = sender.content(res);
         assertThat(content, containsString("No or multiple file 'notExisting' found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
-        final RamlReport report = reports.get(0).getReport();
+        final RamlReport report = assertOneReport();
         final Iterator<String> iter = report.getRequestViolations().iterator();
         assertEquals("Resource '/notExisting' is not defined", iter.next());
     }
@@ -91,8 +95,21 @@ public class MockTest {
     @Test
     public void withMethod() throws Exception {
         final HttpResponse res = sender.post("v1/data");
+        Thread.sleep(10);
+
         assertEquals("666", sender.content(res));
+        assertEquals(201, res.getStatusLine().getStatusCode());
+        assertEquals("yes!", res.getFirstHeader("X-meta").getValue());
+        assertEquals("5", res.getLastHeader("X-meta").getValue());
+
+        final RamlReport report = assertOneReport();
+        assertTrue(report.getRequestViolations().isEmpty());
+        assertTrue(report.getResponseViolations().isEmpty());
+    }
+
+    private RamlReport assertOneReport() {
         final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertTrue(reports.isEmpty());
+        assertEquals(1, reports.size());
+        return reports.get(0).getReport();
     }
 }

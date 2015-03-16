@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,7 @@ public class MockServlet extends HttpServlet {
         put("txt", "text/plain");
     }};
 
+    private final ObjectMapper mapper = new ObjectMapper();
     private final File mockDir;
 
     public MockServlet(File mockDir) {
@@ -58,13 +60,12 @@ public class MockServlet extends HttpServlet {
         final String name = pathInfo.substring(pos + 1);
         final ServletOutputStream out = res.getOutputStream();
         final File targetDir = new File(mockDir, path);
-        final File methodFile = findFile(targetDir, req.getMethod() + "-" + name);
-        final File generalFile = findFile(targetDir, name);
-        final File file = methodFile != null ? methodFile : generalFile;
+        final File file = findFile(targetDir, name, req.getMethod());
         if (file == null) {
             res.sendError(HttpServletResponse.SC_NOT_FOUND, "No or multiple file '" + name + "' found in directory '" + targetDir.getAbsolutePath() + "'");
             return;
         }
+        handleMeta(req, res, targetDir, name);
         res.setContentLength((int) file.length());
         res.setContentType(mineType(file));
         try (final InputStream in = new FileInputStream(file)) {
@@ -75,12 +76,30 @@ public class MockServlet extends HttpServlet {
         out.flush();
     }
 
+    private void handleMeta(HttpServletRequest req, HttpServletResponse res, File targetDir, String name) throws IOException {
+        final File metaFile = findFile(targetDir, "META-" + name, req.getMethod());
+        if (metaFile != null) {
+            try {
+                final ReponseMetaData meta = new ReponseMetaData(mapper.readValue(metaFile, Map.class));
+                meta.apply(res);
+            } catch (Exception e) {
+                log.warn("Problem applying meta data for '" + targetDir + "/" + name + "': " + e);
+            }
+        }
+    }
+
     private void copy(InputStream in, OutputStream out) throws IOException {
         final byte[] buf = new byte[4096];
         int read;
         while ((read = in.read(buf)) > 0) {
             out.write(buf, 0, read);
         }
+    }
+
+    private File findFile(File dir, String name, String method) {
+        final File methodFile = findFile(dir, method + "-" + name);
+        final File generalFile = findFile(dir, name);
+        return methodFile != null ? methodFile : generalFile;
     }
 
     private File findFile(File dir, final String name) {

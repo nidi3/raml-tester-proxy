@@ -44,15 +44,13 @@ public class OptionContainer {
     private boolean ignoreXheaders;
 
     public OptionContainer(int port, String targetOrMockDir, String ramlUri, String baseUri) {
-        this(port, targetOrMockDir.startsWith("http") ? targetOrMockDir : null,
-                targetOrMockDir.startsWith("http") ? null : new File(targetOrMockDir),
-                ramlUri, baseUri, null, null, false);
+        this(port, targetOrMockDir, ramlUri, baseUri, null, null, false);
     }
 
-    public OptionContainer(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
+    public OptionContainer(int port, String targetOrMockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
         this.port = port;
-        this.target = target;
-        this.mockDir = mockDir;
+        this.target = targetOrMockDir.startsWith("http") ? targetOrMockDir : null;
+        this.mockDir = targetOrMockDir.startsWith("http") ? null : new File(targetOrMockDir);
         this.ramlUri = ramlUri;
         this.baseUri = baseUri;
         this.saveDir = saveDir;
