@@ -60,6 +60,7 @@ public class MockTest {
         final RamlReport report = assertOneReport();
         final Iterator<String> iter = report.getResponseViolations().iterator();
         assertEquals("Response(202) is not defined on action(GET /data)", iter.next());
+        assertTrue(report.getRequestViolations().isEmpty());
     }
 
     @Test
@@ -75,6 +76,7 @@ public class MockTest {
         final RamlReport report = assertOneReport();
         final Iterator<String> iter = report.getRequestViolations().iterator();
         assertEquals("Resource '/multi' is not defined", iter.next());
+        assertTrue(report.getResponseViolations().isEmpty());
     }
 
     @Test
@@ -90,6 +92,7 @@ public class MockTest {
         final RamlReport report = assertOneReport();
         final Iterator<String> iter = report.getRequestViolations().iterator();
         assertEquals("Resource '/notExisting' is not defined", iter.next());
+        assertTrue(report.getResponseViolations().isEmpty());
     }
 
     @Test
@@ -104,6 +107,20 @@ public class MockTest {
 
         final RamlReport report = assertOneReport();
         assertTrue(report.getRequestViolations().isEmpty());
+        assertTrue(report.getResponseViolations().isEmpty());
+    }
+
+    @Test
+    public void nested() throws Exception {
+        final HttpResponse res = sender.post("v1/super/sub");
+        Thread.sleep(10);
+
+        assertEquals("163", sender.content(res));
+        assertEquals("true", res.getFirstHeader("X-meta").getValue());
+
+        final RamlReport report = assertOneReport();
+        final Iterator<String> iter = report.getRequestViolations().iterator();
+        assertEquals("Action POST is not defined on resource(/super/sub)", iter.next());
         assertTrue(report.getResponseViolations().isEmpty());
     }
 

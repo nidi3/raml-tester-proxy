@@ -60,12 +60,12 @@ public class MockServlet extends HttpServlet {
         final String name = pathInfo.substring(pos + 1);
         final ServletOutputStream out = res.getOutputStream();
         final File targetDir = new File(mockDir, path);
-        final File file = findFile(targetDir, name, req.getMethod());
+        final File file = findFileOrParent(targetDir, name, req.getMethod());
         if (file == null) {
             res.sendError(HttpServletResponse.SC_NOT_FOUND, "No or multiple file '" + name + "' found in directory '" + targetDir.getAbsolutePath() + "'");
             return;
         }
-        handleMeta(req, res, targetDir, name);
+        handleMeta(req, res, file.getParentFile(), file.getName());
         res.setContentLength((int) file.length());
         res.setContentType(mineType(file));
         try (final InputStream in = new FileInputStream(file)) {
@@ -76,7 +76,20 @@ public class MockServlet extends HttpServlet {
         out.flush();
     }
 
+    private File findFileOrParent(File targetDir, String name, String method) {
+        File file = findFile(targetDir, name, method);
+        while (file == null && !targetDir.equals(mockDir.getParentFile())) {
+            file = findFile(targetDir, "RESPONSE", method);
+            targetDir = targetDir.getParentFile();
+        }
+        return file;
+    }
+
     private void handleMeta(HttpServletRequest req, HttpServletResponse res, File targetDir, String name) throws IOException {
+        final int dotPos = name.lastIndexOf('.');
+        if (dotPos > 0) {
+            name = name.substring(0, dotPos);
+        }
         final File metaFile = findFile(targetDir, "META-" + name, req.getMethod());
         if (metaFile != null) {
             try {

@@ -30,3 +30,5 @@ if one exists.
 A GET request will first search for `mock-data/admin/GET-user.json` and then for the general `mock-data/admin/user.json`.
 - If a file named `mock-data/admin/META-user.json` exists, it is used to define response code and reponse headers.
 An example file looks like `{ "code": 202, "headers": {"X-meta": "get!"} }`.
+- If no matching file for a request is found, `RESPONSE.json` is searched up the directory structure and used if found.
+`mock-data/RESPONSE.json` would be used whenever no exact matching file is found. The same is true for `META-` files.
