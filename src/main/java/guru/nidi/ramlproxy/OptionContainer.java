@@ -54,45 +54,57 @@ public class OptionContainer {
         this.ramlUri = ramlUri;
         this.baseUri = baseUri;
         this.saveDir = saveDir;
-        this.fileFormat = fileFormat;
+        this.fileFormat = fileFormat != null ? fileFormat : ReportFormat.TEXT;
         this.ignoreXheaders = ignoreXheaders;
     }
 
-    public OptionContainer(String[] args) {
+    public OptionContainer(String[] args, boolean handleExceptions) throws Exception {
         final Options options = createOptions();
         try {
-            CommandLineParser parser = new BasicParser();
-            CommandLine cmd = parser.parse(options, expandArgs(args));
-            port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : 8090;
-            target = cmd.getOptionValue('t');
-            if ((target != null && cmd.hasOption('m')) || (target == null && !cmd.hasOption('m'))) {
-                throw new Exception("Must specify either target (-t) or mock directory (-m)");
-            }
-            if (cmd.hasOption('m')) {
-                if (!cmd.hasOption('b')) {
-                    throw new Exception("Missing option -b");
-                }
-                final String mockDirName = cmd.getOptionValue('m');
-                mockDir = (mockDirName == null || mockDirName.length() == 0) ? new File("mock-files") : new File(mockDirName);
-            }
-            ramlUri = cmd.getOptionValue('r');
-            baseUri = cmd.getOptionValue('b');
-            ignoreXheaders = cmd.hasOption('i');
-            final String saveDirName = cmd.getOptionValue('s');
-            if (saveDirName != null) {
-                saveDir = new File(saveDirName);
-                saveDir.mkdirs();
-            }
-            String fileFormatText = cmd.getOptionValue('f');
-            fileFormat = fileFormatText != null ? ReportFormat.valueOf(fileFormatText.toUpperCase()) : ReportFormat.TEXT;
+            parseOptions(args, options);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.setWidth(80);
-            formatter.setOptionComparator(OPTION_COMPARATOR);
-            formatter.printHelp("java -jar raml-proxy.jar", options);
-            System.exit(1);
+            if (handleExceptions) {
+                handleException(e, options);
+            } else {
+                throw e;
+            }
         }
+    }
+
+    private void handleException(Exception e, Options options) {
+        System.out.println(e.getMessage());
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.setWidth(80);
+        formatter.setOptionComparator(OPTION_COMPARATOR);
+        formatter.printHelp("java -jar raml-proxy.jar", options);
+        System.exit(1);
+    }
+
+    private void parseOptions(String[] args, Options options) throws Exception {
+        CommandLineParser parser = new BasicParser();
+        CommandLine cmd = parser.parse(options, expandArgs(args));
+        port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : 8090;
+        target = cmd.getOptionValue('t');
+        if ((target != null && cmd.hasOption('m')) || (target == null && !cmd.hasOption('m'))) {
+            throw new Exception("Must specify either target (-t) or mock directory (-m)");
+        }
+        if (cmd.hasOption('m')) {
+            if (!cmd.hasOption('b')) {
+                throw new Exception("Missing option -b");
+            }
+            final String mockDirName = cmd.getOptionValue('m');
+            mockDir = (mockDirName == null || mockDirName.length() == 0) ? new File("mock-files") : new File(mockDirName);
+        }
+        ramlUri = cmd.getOptionValue('r');
+        baseUri = cmd.getOptionValue('b');
+        ignoreXheaders = cmd.hasOption('i');
+        final String saveDirName = cmd.getOptionValue('s');
+        if (saveDirName != null) {
+            saveDir = new File(saveDirName);
+            saveDir.mkdirs();
+        }
+        String fileFormatText = cmd.getOptionValue('f');
+        fileFormat = fileFormatText != null ? ReportFormat.valueOf(fileFormatText.toUpperCase()) : ReportFormat.TEXT;
     }
 
     private String[] expandArgs(String[] args) {
@@ -164,5 +176,57 @@ public class OptionContainer {
 
     public boolean isIgnoreXheaders() {
         return ignoreXheaders;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        OptionContainer that = (OptionContainer) o;
+
+        if (ignoreXheaders != that.ignoreXheaders) {
+            return false;
+        }
+        if (port != that.port) {
+            return false;
+        }
+        if (baseUri != null ? !baseUri.equals(that.baseUri) : that.baseUri != null) {
+            return false;
+        }
+        if (fileFormat != that.fileFormat) {
+            return false;
+        }
+        if (mockDir != null ? !mockDir.equals(that.mockDir) : that.mockDir != null) {
+            return false;
+        }
+        if (!ramlUri.equals(that.ramlUri)) {
+            return false;
+        }
+        if (saveDir != null ? !saveDir.equals(that.saveDir) : that.saveDir != null) {
+            return false;
+        }
+        if (target != null ? !target.equals(that.target) : that.target != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = port;
+        result = 31 * result + (target != null ? target.hashCode() : 0);
+        result = 31 * result + (mockDir != null ? mockDir.hashCode() : 0);
+        result = 31 * result + ramlUri.hashCode();
+        result = 31 * result + (baseUri != null ? baseUri.hashCode() : 0);
+        result = 31 * result + (saveDir != null ? saveDir.hashCode() : 0);
+        result = 31 * result + fileFormat.hashCode();
+        result = 31 * result + (ignoreXheaders ? 1 : 0);
+        return result;
     }
 }

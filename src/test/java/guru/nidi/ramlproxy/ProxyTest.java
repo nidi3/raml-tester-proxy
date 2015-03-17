@@ -19,6 +19,7 @@ import guru.nidi.ramlproxy.SavingRamlTesterListener.ReportInfo;
 import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
+import org.apache.http.HttpResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -49,65 +50,82 @@ public class ProxyTest {
     @Test
     public void simpleOk() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        final String res = sender.contentOfGet(proxy, "data");
+        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+            final String res = sender.contentOfGet("data");
 
-        assertEquals("42", res);
+            assertEquals("42", res);
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
+            final List<ReportInfo> reports = proxy.getListener().getReports();
+            assertEquals(1, reports.size());
 
-        assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
-        assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
+            assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
+            assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
+        }
     }
 
     @Test
     public void simpleNok() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        final String res = sender.contentOfGet(proxy, "data?param=1");
+        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+            final String res = sender.contentOfGet("data?param=1");
 
-        assertEquals("illegal json", res);
+            assertEquals("illegal json", res);
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
+            final List<ReportInfo> reports = proxy.getListener().getReports();
+            assertEquals(1, reports.size());
 
-        final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
-        assertEquals(1, requestViolations.size());
-        assertEquals("Query parameter 'param' on action(GET /data) is not defined", requestViolations.iterator().next());
+            final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
+            assertEquals(1, requestViolations.size());
+            assertEquals("Query parameter 'param' on action(GET /data) is not defined", requestViolations.iterator().next());
 
-        final RamlViolations responseViolations = reports.get(0).getReport().getResponseViolations();
-        assertEquals(1, responseViolations.size());
-        assertThat(responseViolations.iterator().next(), startsWith(
-                "Body does not match schema for action(GET /data) response(200) mime-type('application/json')\n" +
-                        "Content: illegal json\n"));
+            final RamlViolations responseViolations = reports.get(0).getReport().getResponseViolations();
+            assertEquals(1, responseViolations.size());
+            assertThat(responseViolations.iterator().next(), startsWith(
+                    "Body does not match schema for action(GET /data) response(200) mime-type('application/json')\n" +
+                            "Content: illegal json\n"));
+        }
     }
 
     @Test
     public void httpsTest() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null);
-        final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        sender.contentOfGet(proxy, "meta");
+        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+            sender.contentOfGet("meta");
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
-        assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
-        for (final String resViol : reports.get(0).getReport().getResponseViolations()) {
-            assertThat(resViol, startsWith("Header 'X-"));
+            final List<ReportInfo> reports = proxy.getListener().getReports();
+            assertEquals(1, reports.size());
+            assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
+            for (final String resViol : reports.get(0).getReport().getResponseViolations()) {
+                assertThat(resViol, startsWith("Header 'X-"));
+            }
         }
     }
 
     @Test
     public void testIgnoreX() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        sender.contentOfGet(proxy, "meta");
+        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+            sender.contentOfGet("meta");
 
-        final List<ReportInfo> reports = proxy.getListener().getReports();
-        assertEquals(1, reports.size());
-        assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
-        assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
+            final List<ReportInfo> reports = proxy.getListener().getReports();
+            assertEquals(1, reports.size());
+            assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
+            assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
+        }
     }
 
+    @Test
+    public void testOptionCommand() throws Exception {
+        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
+        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+            final String optString = "-p" + sender.getPort() + " -thttps://api.github.com -i -r" + Ramls.GITHUB;
+            final HttpResponse response = sender.post("@@@proxy/options", optString);
+            assertEquals("same", sender.content(response));
+
+            final String optString2 = "-p" + sender.getPort() + " -thttps://api.github.com -r" + Ramls.GITHUB;
+            final HttpResponse response2 = sender.post("@@@proxy/options", optString2);
+            assertEquals("different", sender.content(response2));
+        }
+    }
 
 }

@@ -64,8 +64,8 @@ public class ReporterTest {
                                 "request headers", list("head in GET /data"),
                                 "form parameters", list("a in POST /data (application/x-www-form-urlencoded)"),
                                 "response headers", list("rh in GET /data -> 200"),
-                                "response codes", list("201 in GET /data","201 in POST /data"),
-                                "resources", list("/other","/super/sub"),
+                                "response codes", list("201 in GET /data", "201 in POST /data"),
+                                "resources", list("/other", "/super/sub"),
                                 "query parameters", list("q in GET /data"),
                                 "actions", list("POST /data"))),
                 mapper.readValue(reporter.usageFile("simple"), Map.class));
@@ -92,11 +92,12 @@ public class ReporterTest {
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File("target"), format);
-        final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
-                tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1"));
-        final String res = sender.contentOfGet(proxy, "data?param=1");
+        try (final RamlProxy<Reporter> proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
+                tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1"))) {
+            final String res = sender.contentOfGet("data?param=1");
 
-        assertEquals("illegal json", res);
-        return reporter;
+            assertEquals("illegal json", res);
+            return reporter;
+        }
     }
 }

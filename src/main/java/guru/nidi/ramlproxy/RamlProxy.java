@@ -29,15 +29,17 @@ import java.util.EnumSet;
 /**
  *
  */
-public class RamlProxy<T extends RamlTesterListener> {
+public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
     private final Server server;
     private final Thread shutdownHook;
     private final T listener;
+    private final OptionContainer options;
 
     public static void main(String[] args) throws Exception {
-        final OptionContainer options = new OptionContainer(args);
+        final OptionContainer options = new OptionContainer(args, true);
         final RamlTesterListener listener = new Reporter(options.getSaveDir(), options.getFileFormat());
-        create(listener, options).startAndWait();
+        final RamlProxy<RamlTesterListener> proxy = create(listener, options);
+        proxy.waitForServer();
     }
 
     public static <T extends RamlTesterListener> RamlProxy<T> create(T listener, OptionContainer options) throws Exception {
@@ -45,10 +47,11 @@ public class RamlProxy<T extends RamlTesterListener> {
         return new RamlProxy<T>(listener, options);
     }
 
-    public RamlProxy(T listener, OptionContainer options) {
+    public RamlProxy(T listener, OptionContainer options) throws Exception {
         this.listener = listener;
+        this.options = options;
         server = new Server(options.getPort());
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
         final RamlDefinition definition = RamlLoaders.absolutely()
@@ -70,22 +73,23 @@ public class RamlProxy<T extends RamlTesterListener> {
         server.setStopAtShutdown(true);
         shutdownHook = shutdownHook(aggregator, listener);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
+        server.start();
     }
 
     public T getListener() {
         return listener;
     }
 
-    public void start() throws Exception {
-        server.start();
+    public OptionContainer getOptions() {
+        return options;
     }
 
-    public void startAndWait() throws Exception {
-        start();
+    public void waitForServer() throws Exception {
         server.join();
     }
 
-    public void stop() throws Exception {
+    @Override
+    public void close() throws Exception {
         server.stop();
         shutdownHook.start();
         shutdownHook.join();

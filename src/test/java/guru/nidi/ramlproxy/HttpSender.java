@@ -19,6 +19,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 
@@ -61,20 +62,14 @@ public class HttpSender {
         return content(response);
     }
 
-    public String contentOfGet(RamlProxy<?> proxy, String path) throws Exception {
-        proxy.start();
-        final String res = contentOfGet(path);
-        proxy.stop();
-        return res;
-    }
-
     public HttpResponse get(String path) throws IOException {
         final HttpGet get = new HttpGet(url(path));
         return client.execute(get);
     }
 
-    public HttpResponse post(String path) throws IOException {
+    public HttpResponse post(String path,String data) throws IOException {
         final HttpPost post = new HttpPost(url(path));
+        post.setEntity(new StringEntity(data));
         return client.execute(post);
     }
 

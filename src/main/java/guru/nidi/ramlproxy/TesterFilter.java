@@ -20,10 +20,13 @@ import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -31,6 +34,8 @@ import java.io.PrintWriter;
  *
  */
 public class TesterFilter implements Filter {
+    private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
+
     private final RamlProxy<?> proxy;
     private final RamlDefinition ramlDefinition;
     private final MultiReportAggregator aggregator;
@@ -74,27 +79,38 @@ public class TesterFilter implements Filter {
             return false;
         }
         final String command = request.getPathInfo().substring(10);
+        final PrintWriter writer = response.getWriter();
         switch (command) {
             case "stop":
-                final PrintWriter writer = response.getWriter();
                 writer.write("Stopping proxy");
                 writer.flush();
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            System.out.println("Stopping proxy");
+                            log.info("Stopping proxy");
                             Thread.sleep(100);
-                            proxy.stop();
+                            proxy.close();
                         } catch (Exception e) {
-                            System.out.println("Problem stopping proxy, killing instead: " + e);
+                            log.info("Problem stopping proxy, killing instead: " + e);
                             System.exit(1);
                         }
                     }
                 }).start();
                 break;
+            case "options":
+                final BufferedReader in = request.getReader();
+                final OptionContainer options;
+                try {
+                    options = new OptionContainer(in.readLine().split(" "), false);
+                    writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
+                } catch (Exception e) {
+                    writer.write("illegal options: " + e.getMessage());
+                }
+                writer.flush();
+                break;
             default:
-                System.out.println("Ignoring unknown command '" + command + "'");
+                log.info("Ignoring unknown command '" + command + "'");
         }
         return true;
     }

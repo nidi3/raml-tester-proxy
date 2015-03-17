@@ -41,12 +41,11 @@ public class MockTest {
     public void init() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
         proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
-        proxy.start();
     }
 
     @After
     public void stop() throws Exception {
-        proxy.stop();
+        proxy.close();
     }
 
     @Test
@@ -97,7 +96,7 @@ public class MockTest {
 
     @Test
     public void withMethod() throws Exception {
-        final HttpResponse res = sender.post("v1/data");
+        final HttpResponse res = sender.post("v1/data",null);
         Thread.sleep(10);
 
         assertEquals("666", sender.content(res));
@@ -112,7 +111,7 @@ public class MockTest {
 
     @Test
     public void nested() throws Exception {
-        final HttpResponse res = sender.post("v1/super/sub");
+        final HttpResponse res = sender.post("v1/super/sub",null);
         Thread.sleep(10);
 
         assertEquals("163", sender.content(res));
