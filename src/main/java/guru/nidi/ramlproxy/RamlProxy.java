@@ -15,7 +15,6 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.RamlLoaders;
 import org.eclipse.jetty.server.Server;
@@ -29,33 +28,32 @@ import java.util.EnumSet;
 /**
  *
  */
-public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
+public class RamlProxy<T extends ReportSaver> implements AutoCloseable {
     private final Server server;
     private final Thread shutdownHook;
-    private final T listener;
+    private final T saver;
     private final OptionContainer options;
 
     public static void main(String[] args) throws Exception {
         final OptionContainer options = new OptionContainer(args, true);
-        final RamlTesterListener listener = new Reporter(options.getSaveDir(), options.getFileFormat());
-        final RamlProxy<RamlTesterListener> proxy = create(listener, options);
+        final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
+        final RamlProxy<ReportSaver> proxy = create(saver, options);
         proxy.waitForServer();
     }
 
-    public static <T extends RamlTesterListener> RamlProxy<T> create(T listener, OptionContainer options) throws Exception {
+    public static <T extends ReportSaver> RamlProxy<T> create(T saver, OptionContainer options) throws Exception {
         LogConfigurer.init();
-        return new RamlProxy<T>(listener, options);
+        return new RamlProxy<T>(saver, options);
     }
 
-    public RamlProxy(T listener, OptionContainer options) throws Exception {
-        this.listener = listener;
+    public RamlProxy(T saver, OptionContainer options) throws Exception {
+        this.saver = saver;
         this.options = options;
         server = new Server(options.getPort());
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-        final MultiReportAggregator aggregator = new MultiReportAggregator();
-        final TesterFilter testerFilter = new TesterFilter(this, aggregator, listener);
+        final TesterFilter testerFilter = new TesterFilter(this, saver);
         final ServletHolder servlet;
         if (options.isMockMode()) {
             servlet = new ServletHolder(new MockServlet(options.getMockDir()));
@@ -67,20 +65,20 @@ public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
         server.setStopAtShutdown(true);
-        shutdownHook = shutdownHook(aggregator, listener);
+        shutdownHook = shutdownHook(saver);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         server.start();
     }
 
     public RamlDefinition fetchRamlDefinition() {
         return RamlLoaders.absolutely()
-                    .load(options.getRamlUri())
-                    .ignoringXheaders(options.isIgnoreXheaders())
-                    .assumingBaseUri(options.getBaseOrTargetUri());
+                .load(options.getRamlUri())
+                .ignoringXheaders(options.isIgnoreXheaders())
+                .assumingBaseUri(options.getBaseOrTargetUri());
     }
 
-    public T getListener() {
-        return listener;
+    public T getSaver() {
+        return saver;
     }
 
     public OptionContainer getOptions() {
@@ -98,11 +96,11 @@ public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
         shutdownHook.join();
     }
 
-    private static Thread shutdownHook(final MultiReportAggregator aggregator, final RamlTesterListener listener) {
+    private static Thread shutdownHook(final ReportSaver saver) {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                listener.onUsage(aggregator);
+                saver.flushUsage();
             }
         });
         thread.setDaemon(true);

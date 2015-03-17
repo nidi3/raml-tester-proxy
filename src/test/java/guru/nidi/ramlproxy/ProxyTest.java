@@ -15,7 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramlproxy.SavingRamlTesterListener.ReportInfo;
+import guru.nidi.ramlproxy.ReportSaver.ReportInfo;
 import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
@@ -50,12 +50,12 @@ public class ProxyTest {
     @Test
     public void simpleOk() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
             final String res = sender.contentOfGet("data");
 
             assertEquals("42", res);
 
-            final List<ReportInfo> reports = proxy.getListener().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports();
             assertEquals(1, reports.size());
 
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
@@ -66,12 +66,12 @@ public class ProxyTest {
     @Test
     public void simpleNok() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
             final String res = sender.contentOfGet("data?param=1");
 
             assertEquals("illegal json", res);
 
-            final List<ReportInfo> reports = proxy.getListener().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports();
             assertEquals(1, reports.size());
 
             final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
@@ -89,10 +89,10 @@ public class ProxyTest {
     @Test
     public void httpsTest() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null);
-        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
-            final List<ReportInfo> reports = proxy.getListener().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports();
             assertEquals(1, reports.size());
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
             for (final String resViol : reports.get(0).getReport().getResponseViolations()) {
@@ -104,10 +104,10 @@ public class ProxyTest {
     @Test
     public void testIgnoreX() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
-            final List<ReportInfo> reports = proxy.getListener().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports();
             assertEquals(1, reports.size());
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
             assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());
@@ -117,7 +117,7 @@ public class ProxyTest {
     @Test
     public void testOptionCommand() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        try (final RamlProxy<SavingRamlTesterListener> proxy = RamlProxy.create(new SavingRamlTesterListener(), options)) {
+        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
             final String optString = "-p" + sender.getPort() + " -thttps://api.github.com -i -r" + Ramls.GITHUB;
             final HttpResponse response = sender.post("@@@proxy/options", optString);
             assertEquals("same", sender.content(response));

@@ -29,13 +29,14 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
  */
-public class Reporter implements RamlTesterListener {
+public class Reporter extends ReportSaver {
     static final String NO_CONTENT = "No content";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -54,17 +55,11 @@ public class Reporter implements RamlTesterListener {
         } else {
             log.info("Reporting in {} format into: {}", reportFormat, saveDir);
         }
-        onReload();
+        flushingReports(null);
     }
 
     @Override
-    public void onReload() {
-        startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
-        id = new AtomicLong();
-    }
-
-    @Override
-    public void onViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    protected void addingReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         if (!report.isEmpty()) {
             final long idValue = id.incrementAndGet();
             logViolations(idValue, report, request);
@@ -73,7 +68,13 @@ public class Reporter implements RamlTesterListener {
     }
 
     @Override
-    public void onUsage(MultiReportAggregator aggregator) {
+    protected void flushingReports(List<ReportInfo> reports) {
+        startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
+        id = new AtomicLong();
+    }
+
+    @Override
+    public void flushingUsage(MultiReportAggregator aggregator) {
         for (Map.Entry<String, Usage> entry : aggregator.usages()) {
             final DescribedUsage describedUsage = new DescribedUsage(entry.getValue());
             logUsage(entry.getKey(), describedUsage);

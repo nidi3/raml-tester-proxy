@@ -26,28 +26,33 @@ import java.util.List;
 /**
  *
  */
-public class SavingRamlTesterListener implements RamlTesterListener {
+public class ReportSaver {
     private final List<ReportInfo> reports = new ArrayList<>();
-    private MultiReportAggregator aggregator;
-    private int reloads;
+    private MultiReportAggregator aggregator = new MultiReportAggregator();
 
-    @Override
-    public void onViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    public final void addReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+        addingReport(report, request, response);
+        aggregator.addReport(report);
         reports.add(new ReportInfo(report, request, response));
     }
 
-    @Override
-    public void onUsage(MultiReportAggregator aggregator) {
-        this.aggregator = aggregator;
+    public final void flushReports() {
+        flushingReports(reports);
+        reports.clear();
     }
 
-    @Override
-    public void onReload() {
-        reloads++;
+    public final void flushUsage() {
+        flushingUsage(aggregator);
+        aggregator = new MultiReportAggregator();
     }
 
-    public int getReloads() {
-        return reloads;
+    protected void addingReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    }
+
+    protected void flushingReports(List<ReportInfo> reports) {
+    }
+
+    protected void flushingUsage(MultiReportAggregator aggregator) {
     }
 
     public List<ReportInfo> getReports() {

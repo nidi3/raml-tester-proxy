@@ -15,7 +15,6 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
@@ -37,15 +36,13 @@ public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
 
     private final RamlProxy<?> proxy;
-    private final MultiReportAggregator aggregator;
-    private final RamlTesterListener listener;
+    private final ReportSaver saver;
 
     private RamlDefinition ramlDefinition;
 
-    public TesterFilter(RamlProxy<?> proxy, MultiReportAggregator aggregator, RamlTesterListener listener) {
+    public TesterFilter(RamlProxy<?> proxy, ReportSaver saver) {
         this.proxy = proxy;
-        this.aggregator = aggregator;
-        this.listener = listener;
+        this.saver = saver;
         fetchRamlDefinition();
     }
 
@@ -71,8 +68,7 @@ public class TesterFilter implements Filter {
 
     public void test(ServletRamlRequest request, ServletRamlResponse response) {
         final RamlReport report = ramlDefinition.testAgainst(request, response);
-        aggregator.addReport(report);
-        listener.onViolations(report, request, response);
+        saver.addReport(report, request, response);
     }
 
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -101,18 +97,23 @@ public class TesterFilter implements Filter {
             case "options":
                 final BufferedReader in = request.getReader();
                 final OptionContainer options;
+                final String raw = in.readLine();
                 try {
-                    options = new OptionContainer(in.readLine().split(" "), false);
+                    options = new OptionContainer(raw.split(" "), false);
                     writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
                 } catch (Exception e) {
-                    writer.write("illegal options: " + e.getMessage());
+                    writer.println("illegal options: '" + raw + "'");
+                    e.printStackTrace(writer);
                 }
                 break;
+            //TODO rename?
             case "reload":
                 fetchRamlDefinition();
-                listener.onReload();
+                saver.flushReports();
                 writer.write("RAML reloaded");
                 log.info("RAML reloaded");
+                break;
+//            case "":
             default:
                 log.info("Ignoring unknown command '" + command + "'");
         }

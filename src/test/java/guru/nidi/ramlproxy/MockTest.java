@@ -15,7 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramlproxy.SavingRamlTesterListener.ReportInfo;
+import guru.nidi.ramlproxy.ReportSaver.ReportInfo;
 import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlReport;
 import org.apache.http.HttpResponse;
@@ -35,12 +35,12 @@ import static org.junit.Assert.*;
 public class MockTest {
     private static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
     private HttpSender sender = new HttpSender(8090);
-    private RamlProxy<SavingRamlTesterListener> proxy;
+    private RamlProxy<ReportSaver> proxy;
 
     @Before
     public void init() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
-        proxy = RamlProxy.create(new SavingRamlTesterListener(), options);
+        proxy = RamlProxy.create(new ReportSaver(), options);
     }
 
     @After
@@ -124,7 +124,7 @@ public class MockTest {
     }
 
     private RamlReport assertOneReport() {
-        final List<ReportInfo> reports = proxy.getListener().getReports();
+        final List<ReportInfo> reports = proxy.getSaver().getReports();
         assertEquals(1, reports.size());
         return reports.get(0).getReport();
     }
