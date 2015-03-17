@@ -18,6 +18,8 @@ package guru.nidi.ramlproxy;
 import guru.nidi.ramlproxy.TestUtils.Ramls;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.*;
@@ -79,6 +81,34 @@ public class ProcessTest {
             Thread.sleep(200);
             assertTrue(proxy.hasEnded());
         }
+    }
+
+    @Test
+    public void testReloadCommand() throws Exception {
+        final int before = violationFileCount("target");
+        try (final TomcatServer tomcat = new TomcatServer(8080, new SimpleServlet());
+             final ProxyProcess proxy = new ProxyProcess("-starget", "-p", "" + sender.getPort(), "-t", tomcat.url(), "-r", Ramls.SIMPLE)) {
+            assertProxyStarted(proxy);
+
+            System.out.println(sender.contentOfGet("meta"));
+            proxy.readAllLines();
+
+            assertThat(sender.contentOfGet("@@@proxy/reload"), equalTo("RAML reloaded"));
+            assertThat(proxy.readLine(), endsWith("RAML reloaded"));
+
+            System.out.println(sender.contentOfGet("meta"));
+        }
+        final int after = violationFileCount("target");
+        assertEquals(2, after - before);
+    }
+
+    private int violationFileCount(String dir) {
+        return new File(dir).list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith("raml-violation") && name.endsWith(".log");
+            }
+        }).length;
     }
 
     private void assertProxyStarted(ProxyProcess proxy) throws InterruptedException {

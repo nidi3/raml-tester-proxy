@@ -27,4 +27,6 @@ public interface RamlTesterListener {
     void onViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response);
 
     void onUsage(MultiReportAggregator aggregator);
+
+    void onReload();
 }

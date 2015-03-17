@@ -94,6 +94,12 @@ public class ProxyProcess implements AutoCloseable {
         return output.poll(maxWaitSec, TimeUnit.SECONDS);
     }
 
+    public void readAllLines() throws InterruptedException {
+        while (readLine() != null) {
+            ;
+        }
+    }
+
     public boolean hasEnded() {
         try {
             proc[0].exitValue();

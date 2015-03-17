@@ -37,15 +37,16 @@ public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
 
     private final RamlProxy<?> proxy;
-    private final RamlDefinition ramlDefinition;
     private final MultiReportAggregator aggregator;
     private final RamlTesterListener listener;
 
-    public TesterFilter(RamlProxy<?> proxy, RamlDefinition ramlDefinition, MultiReportAggregator aggregator, RamlTesterListener listener) {
+    private RamlDefinition ramlDefinition;
+
+    public TesterFilter(RamlProxy<?> proxy, MultiReportAggregator aggregator, RamlTesterListener listener) {
         this.proxy = proxy;
-        this.ramlDefinition = ramlDefinition;
         this.aggregator = aggregator;
         this.listener = listener;
+        fetchRamlDefinition();
     }
 
     @Override
@@ -74,7 +75,6 @@ public class TesterFilter implements Filter {
         listener.onViolations(report, request, response);
     }
 
-    //TODO reload raml command
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!request.getPathInfo().startsWith("/@@@proxy")) {
             return false;
@@ -84,7 +84,6 @@ public class TesterFilter implements Filter {
         switch (command) {
             case "stop":
                 writer.write("Stopping proxy");
-                writer.flush();
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -108,12 +107,21 @@ public class TesterFilter implements Filter {
                 } catch (Exception e) {
                     writer.write("illegal options: " + e.getMessage());
                 }
-                writer.flush();
                 break;
+            case "reload":
+                fetchRamlDefinition();
+                listener.onReload();
+                writer.write("RAML reloaded");
+                log.info("RAML reloaded");
             default:
                 log.info("Ignoring unknown command '" + command + "'");
         }
+        writer.flush();
         return true;
+    }
+
+    private void fetchRamlDefinition() {
+        ramlDefinition = proxy.fetchRamlDefinition();
     }
 }
 

@@ -29,6 +29,7 @@ import java.util.List;
 public class SavingRamlTesterListener implements RamlTesterListener {
     private final List<ReportInfo> reports = new ArrayList<>();
     private MultiReportAggregator aggregator;
+    private int reloads;
 
     @Override
     public void onViolations(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
@@ -38,6 +39,15 @@ public class SavingRamlTesterListener implements RamlTesterListener {
     @Override
     public void onUsage(MultiReportAggregator aggregator) {
         this.aggregator = aggregator;
+    }
+
+    @Override
+    public void onReload() {
+        reloads++;
+    }
+
+    public int getReloads() {
+        return reloads;
     }
 
     public List<ReportInfo> getReports() {

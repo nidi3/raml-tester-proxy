@@ -54,12 +54,8 @@ public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
         server.setHandler(context);
-        final RamlDefinition definition = RamlLoaders.absolutely()
-                .load(options.getRamlUri())
-                .ignoringXheaders(options.isIgnoreXheaders())
-                .assumingBaseUri(options.getBaseOrTargetUri());
         final MultiReportAggregator aggregator = new MultiReportAggregator();
-        final TesterFilter testerFilter = new TesterFilter(this, definition, aggregator, listener);
+        final TesterFilter testerFilter = new TesterFilter(this, aggregator, listener);
         final ServletHolder servlet;
         if (options.isMockMode()) {
             servlet = new ServletHolder(new MockServlet(options.getMockDir()));
@@ -74,6 +70,13 @@ public class RamlProxy<T extends RamlTesterListener> implements AutoCloseable {
         shutdownHook = shutdownHook(aggregator, listener);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         server.start();
+    }
+
+    public RamlDefinition fetchRamlDefinition() {
+        return RamlLoaders.absolutely()
+                    .load(options.getRamlUri())
+                    .ignoringXheaders(options.isIgnoreXheaders())
+                    .assumingBaseUri(options.getBaseOrTargetUri());
     }
 
     public T getListener() {

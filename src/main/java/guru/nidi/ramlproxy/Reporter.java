@@ -42,8 +42,9 @@ public class Reporter implements RamlTesterListener {
 
     private final File saveDir;
     private final ReportFormat reportFormat;
-    private final String startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
-    private final AtomicLong id = new AtomicLong();
+
+    private String startup;
+    private AtomicLong id;
 
     public Reporter(File saveDir, ReportFormat reportFormat) {
         this.saveDir = saveDir;
@@ -53,6 +54,13 @@ public class Reporter implements RamlTesterListener {
         } else {
             log.info("Reporting in {} format into: {}", reportFormat, saveDir);
         }
+        onReload();
+    }
+
+    @Override
+    public void onReload() {
+        startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
+        id = new AtomicLong();
     }
 
     @Override
