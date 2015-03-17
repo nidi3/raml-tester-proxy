@@ -67,9 +67,11 @@ public class HttpSender {
         return client.execute(get);
     }
 
-    public HttpResponse post(String path,String data) throws IOException {
+    public HttpResponse post(String path, String data) throws IOException {
         final HttpPost post = new HttpPost(url(path));
-        post.setEntity(new StringEntity(data));
+        if (data != null) {
+            post.setEntity(new StringEntity(data));
+        }
         return client.execute(post);
     }
 

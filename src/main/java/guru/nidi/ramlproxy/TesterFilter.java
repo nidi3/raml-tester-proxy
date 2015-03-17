@@ -74,6 +74,7 @@ public class TesterFilter implements Filter {
         listener.onViolations(report, request, response);
     }
 
+    //TODO reload raml command
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
         if (!request.getPathInfo().startsWith("/@@@proxy")) {
             return false;
