@@ -48,7 +48,7 @@ public class ProxyTest {
     @Test
     public void simpleOk() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
+        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             final String res = sender.contentOfGet("data");
 
             assertEquals("42", res);
@@ -64,7 +64,7 @@ public class ProxyTest {
     @Test
     public void simpleNok() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
+        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             final String res = sender.contentOfGet("data?param=1");
 
             assertEquals("illegal json", res);
@@ -87,7 +87,7 @@ public class ProxyTest {
     @Test
     public void httpsTest() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null);
-        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
+        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
             final List<ReportInfo> reports = proxy.getSaver().getReports();
@@ -102,7 +102,7 @@ public class ProxyTest {
     @Test
     public void testIgnoreX() throws Exception {
         final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
+        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
             final List<ReportInfo> reports = proxy.getSaver().getReports();

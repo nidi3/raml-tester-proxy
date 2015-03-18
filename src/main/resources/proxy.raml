@@ -1,0 +1,51 @@
+#%RAML 0.8
+---
+title: raml-proxy
+baseUri: http://{host}/@@@proxy
+version: v1
+traits:
+  - ignorable:
+      headers:
+        X-Ignore-Commands:
+          description: If 'true' then ignore the command
+  - json:
+      responses:
+        200:
+          body:
+            application/json:
+  - text:
+      responses:
+        200:
+          body:
+            text/plain:
+
+/stop:
+  description: Stop the server
+  get:
+    is: [ignorable,text]
+
+/options:
+  description: Compare the sent options with the current ones, return 'same' or 'different'
+  post:
+    is: [ignorable,text]
+    body:
+      text/plain:
+
+/reload:
+  description: Reload the RAML file and flush the reports
+  get:
+    is: [ignorable,text]
+
+/reports:
+  description: Return all reports since startup or last reload
+  get:
+    is: [ignorable,json]
+
+/usage:
+  /clear:
+    description: Flush all usage data
+    get:
+      is: [ignorable,text]
+  get:
+    description: Return all usage data since startup or last usage flush
+    is: [ignorable,json]

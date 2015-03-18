@@ -15,11 +15,9 @@
  */
 package guru.nidi.ramlproxy;
 
-/**
-*
-*/
 class Ramls {
     public static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
             GITHUB = LOCATION + "github-meta.raml",
-            SIMPLE = LOCATION + "simple.raml";
+            SIMPLE = LOCATION + "simple.raml",
+            COMMAND = "file://src/main/resources/proxy.raml";
 }

@@ -20,6 +20,7 @@ import guru.nidi.ramltester.servlet.ServletRamlResponse;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,9 @@ public class ProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transpare
 
     @Override
     protected void sendProxyRequest(HttpServletRequest request, HttpServletResponse response, Request proxyRequest) {
-        proxyRequest.getHeaders().remove("Host");
+        final HttpFields headers = proxyRequest.getHeaders();
+        headers.remove("Host");
+        headers.remove(TesterFilter.IGNORE_COMMANDS_HEADER);
         super.sendProxyRequest(request, response, proxyRequest);
     }
 }

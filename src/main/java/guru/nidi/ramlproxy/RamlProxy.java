@@ -28,25 +28,25 @@ import java.util.EnumSet;
 /**
  *
  */
-public class RamlProxy<T extends ReportSaver> implements AutoCloseable {
+public class RamlProxy implements AutoCloseable {
     private final Server server;
     private final Thread shutdownHook;
-    private final T saver;
+    private final ReportSaver saver;
     private final OptionContainer options;
 
     public static void main(String[] args) throws Exception {
         final OptionContainer options = new OptionContainer(args, true);
         final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
-        final RamlProxy<ReportSaver> proxy = create(saver, options);
+        final RamlProxy proxy = create(saver, options);
         proxy.waitForServer();
     }
 
-    public static <T extends ReportSaver> RamlProxy<T> create(T saver, OptionContainer options) throws Exception {
+    public static RamlProxy create(ReportSaver saver, OptionContainer options) throws Exception {
         LogConfigurer.init();
-        return new RamlProxy<T>(saver, options);
+        return new RamlProxy(saver, options);
     }
 
-    public RamlProxy(T saver, OptionContainer options) throws Exception {
+    public RamlProxy(ReportSaver saver, OptionContainer options) throws Exception {
         this.saver = saver;
         this.options = options;
         server = new Server(options.getPort());
@@ -77,7 +77,7 @@ public class RamlProxy<T extends ReportSaver> implements AutoCloseable {
                 .assumingBaseUri(options.getBaseOrTargetUri());
     }
 
-    public T getSaver() {
+    public ReportSaver getSaver() {
         return saver;
     }
 
@@ -91,9 +91,15 @@ public class RamlProxy<T extends ReportSaver> implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        server.stop();
-        shutdownHook.start();
-        shutdownHook.join();
+        if (!server.isStopped() && !server.isStopping()) {
+            server.stop();
+            shutdownHook.start();
+            shutdownHook.join();
+        }
+    }
+
+    public boolean isStopped() {
+        return server.isStopped();
     }
 
     private static Thread shutdownHook(final ReportSaver saver) {

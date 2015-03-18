@@ -36,13 +36,17 @@ import java.util.Map;
  */
 public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
+    static final String COMMAND_PATH = "/@@@proxy";
+    static final String IGNORE_COMMANDS_HEADER = "X-Ignore-Commands";
+    private static final String TEXT = "text/plain";
+    private static final String JSON = "application/json";
 
-    private final RamlProxy<?> proxy;
+    private final RamlProxy proxy;
     private final ReportSaver saver;
 
     private RamlDefinition ramlDefinition;
 
-    public TesterFilter(RamlProxy<?> proxy, ReportSaver saver) {
+    public TesterFilter(RamlProxy proxy, ReportSaver saver) {
         this.proxy = proxy;
         this.saver = saver;
         fetchRamlDefinition();
@@ -74,29 +78,35 @@ public class TesterFilter implements Filter {
     }
 
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!request.getPathInfo().startsWith("/@@@proxy")) {
+        if (!request.getPathInfo().startsWith(COMMAND_PATH) || "true".equals(request.getHeader(IGNORE_COMMANDS_HEADER))) {
             return false;
         }
         final String command = request.getPathInfo().substring(10);
         final PrintWriter writer = response.getWriter();
         switch (command) {
             case "stop":
+                response.setContentType(TEXT);
                 stopCommand(writer);
                 break;
             case "options":
+                response.setContentType(TEXT);
                 optionsCommand(request.getReader(), writer);
                 break;
             //TODO rename?
             case "reload":
+                response.setContentType(TEXT);
                 reloadCommand(writer);
                 break;
             case "usage/clear":
+                response.setContentType(TEXT);
                 clearUsageCommand(writer);
                 break;
             case "usage":
+                response.setContentType(JSON);
                 usageCommand(writer);
                 break;
             case "reports":
+                response.setContentType(JSON);
                 reportsCommand(writer);
                 break;
             default:
@@ -110,7 +120,9 @@ public class TesterFilter implements Filter {
         String res = "";
         int id = 0;
         for (ReportSaver.ReportInfo info : saver.getReports()) {
-            res += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
+            if (!info.getReport().isEmpty()) {
+                res += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
+            }
         }
         writer.write(jsonArray(res));
         log.info("Reports sent");

@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramltester.core.RamlReport;
 import org.apache.http.HttpResponse;
 import org.junit.After;
 import org.junit.Before;
@@ -31,39 +32,54 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Client ----> Proxy ----> Mock ----> Filesystem
+ * Test commands on Mock
+ * Test if commands satisfy RAML using Proxy
  */
 public class CommandTest {
     private static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
-    private HttpSender sender = new HttpSender(8090);
-    private RamlProxy<ReportSaver> proxy;
+    private HttpSender mockSender = new HttpSender(8091);
+    private HttpSender proxySender = new HttpSender(8090);
+    private RamlProxy mock, proxy;
 
     @Before
     public void init() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true);
-        proxy = RamlProxy.create(new ReportSaver(), options);
+        proxySender.setIgnoreCommands(true);
+        try {
+            mockSender.contentOfGet("/@@@proxy/stop");
+        } catch (Exception e) {
+        }
+        mock = RamlProxy.create(new ReportSaver(), new OptionContainer(
+                mockSender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
+        proxy = RamlProxy.create(new ReportSaver(), new OptionContainer(
+                proxySender.getPort(), mockSender.url(), Ramls.COMMAND, null));
     }
 
     @After
-    public void stop() throws Exception {
+    public void end() throws Exception {
+        mock.close();
         proxy.close();
+        for (ReportSaver.ReportInfo info : proxy.getSaver().getReports()) {
+            final RamlReport report = info.getReport();
+            assertTrue(report.getRequestViolations() + "\n" + report.getResponseViolations(), report.isEmpty());
+        }
     }
 
     @Test
     public void reports() throws Exception {
-        sender.get("v1/data?q=1");
+        mockSender.get("v1/data?q=1");
         Thread.sleep(10);
 
-        final HttpResponse res = sender.get("/@@@proxy/reports");
-        final List actual = new ObjectMapper().readValue(sender.content(res), List.class);
+        final HttpResponse res = proxySender.get("/@@@proxy/reports");
+        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(list(map(
                         "id", 0,
                         "request violations", list(),
-                        "request", "GET " + sender.url("v1/data") + "?q=1 from 127.0.0.1",
+                        "request", "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
                         "request headers", map(
                                 "Connection", list("keep-alive"),
                                 "User-Agent", ((Map) ((Map) actual.get(0)).get("request headers")).get("User-Agent"),
-                                "Host", list("localhost:" + sender.getPort()),
+                                "Host", list("localhost:" + mockSender.getPort()),
                                 "Accept-Encoding", list("gzip,deflate")),
                         "response violations", list("Response(202) is not defined on action(GET /data)"),
                         "response", "42",
@@ -72,13 +88,20 @@ public class CommandTest {
     }
 
     @Test
+    public void stop() throws Exception {
+        proxySender.get("/@@@proxy/stop");
+        Thread.sleep(200);
+        assertTrue(mock.isStopped());
+    }
+
+    @Test
     public void usage() throws Exception {
-        sender.contentOfGet("v1/data?q=1");
-        sender.contentOfGet("v1/other");
+        mockSender.contentOfGet("v1/data?q=1");
+        mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        final HttpResponse res = sender.get("/@@@proxy/usage");
-        final List actual = new ObjectMapper().readValue(sender.content(res), List.class);
+        final HttpResponse res = proxySender.get("/@@@proxy/usage");
+        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(list(map(
                         "context", "simple",
                         "unused", map(
@@ -94,40 +117,40 @@ public class CommandTest {
 
     @Test
     public void clearUsage() throws Exception {
-        sender.contentOfGet("v1/data?q=1");
-        sender.contentOfGet("v1/other");
+        mockSender.contentOfGet("v1/data?q=1");
+        mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        sender.get("/@@@proxy/usage/clear");
-        final HttpResponse res = sender.get("/@@@proxy/usage");
-        final List actual = new ObjectMapper().readValue(sender.content(res), List.class);
+        proxySender.get("/@@@proxy/usage/clear");
+        final HttpResponse res = proxySender.get("/@@@proxy/usage");
+        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertTrue(actual.isEmpty());
     }
 
     @Test
     public void reload() throws Exception {
-        sender.get("meta");
+        mockSender.get("meta");
         Thread.sleep(10);
 
-        final HttpResponse res = sender.get("/@@@proxy/reports");
-        final List actual = new ObjectMapper().readValue(sender.content(res), List.class);
+        final HttpResponse res = proxySender.get("@@@proxy/reports");
+        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(1, actual.size());
 
-        assertThat(sender.contentOfGet("@@@proxy/reload"), equalTo("RAML reloaded"));
-        final HttpResponse res2 = sender.get("/@@@proxy/reports");
-        final List actual2 = new ObjectMapper().readValue(sender.content(res2), List.class);
+        assertThat(proxySender.contentOfGet("@@@proxy/reload"), equalTo("RAML reloaded"));
+        final HttpResponse res2 = proxySender.get("@@@proxy/reports");
+        final List actual2 = new ObjectMapper().readValue(proxySender.content(res2), List.class);
         assertEquals(0, actual2.size());
     }
 
     @Test
     public void options() throws Exception {
-        final String optString = "-p" + sender.getPort() + " -m" + MOCK_DIR + " -i -r" + Ramls.SIMPLE + " -bhttp://nidi.guru/raml -starget";
-        final HttpResponse response = sender.post("@@@proxy/options", optString);
-        assertEquals("same", sender.content(response));
+        final String optString = "-p" + mockSender.getPort() + " -m" + MOCK_DIR + " -i -r" + Ramls.SIMPLE + " -bhttp://nidi.guru/raml -starget";
+        final HttpResponse response = proxySender.post("@@@proxy/options", optString);
+        assertEquals("same", proxySender.content(response));
 
-        final String optString2 = "-p" + sender.getPort() + " -thttps://api.github.com -r" + Ramls.SIMPLE;
-        final HttpResponse response2 = sender.post("@@@proxy/options", optString2);
-        assertEquals("different", sender.content(response2));
+        final String optString2 = "-p" + mockSender.getPort() + " -thttps://api.github.com -r" + Ramls.SIMPLE;
+        final HttpResponse response2 = proxySender.post("@@@proxy/options", optString2);
+        assertEquals("different", proxySender.content(response2));
     }
 
 }

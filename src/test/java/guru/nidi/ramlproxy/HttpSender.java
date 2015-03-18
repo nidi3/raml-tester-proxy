@@ -33,6 +33,7 @@ import java.io.IOException;
 public class HttpSender {
     private final HttpClient client;
     private final int port;
+    private boolean ignoreCommands = false;
 
     public HttpSender(int port) {
         this.port = port;
@@ -44,8 +45,16 @@ public class HttpSender {
         }).build();
     }
 
+    public void setIgnoreCommands(boolean ignore) {
+        this.ignoreCommands = ignore;
+    }
+
+    public String url() {
+        return "http://localhost:" + port;
+    }
+
     public String url(String path) {
-        return "http://localhost:" + port + "/" + path;
+        return url() + "/" + path;
     }
 
     public int getPort() {
@@ -57,13 +66,15 @@ public class HttpSender {
     }
 
     public String contentOfGet(String path) throws IOException {
-        final HttpGet get = new HttpGet(url(path));
-        final HttpResponse response = client.execute(get);
+        final HttpResponse response = get(path);
         return content(response);
     }
 
     public HttpResponse get(String path) throws IOException {
         final HttpGet get = new HttpGet(url(path));
+        if (ignoreCommands) {
+            get.addHeader(TesterFilter.IGNORE_COMMANDS_HEADER, "true");
+        }
         return client.execute(get);
     }
 
@@ -71,6 +82,9 @@ public class HttpSender {
         final HttpPost post = new HttpPost(url(path));
         if (data != null) {
             post.setEntity(new StringEntity(data));
+        }
+        if (ignoreCommands) {
+            post.addHeader(TesterFilter.IGNORE_COMMANDS_HEADER, "true");
         }
         return client.execute(post);
     }
