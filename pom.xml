@@ -6,7 +6,7 @@
     <parent>
         <groupId>guru.nidi</groupId>
         <artifactId>guru-nidi-parent-pom</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2-SNAPSHOT</version>
     </parent>
 
     <groupId>guru.nidi.raml</groupId>
@@ -114,6 +114,13 @@
             <artifactId>jetty-proxy</artifactId>
             <version>${jetty-version}</version>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <!-- When changing version, change also patched classes!!! -->
+            <version>1.1.2</version>
+        </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
