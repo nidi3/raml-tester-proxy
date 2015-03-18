@@ -20,6 +20,7 @@ import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,9 +156,9 @@ public class TesterFilter implements Filter {
         final OptionContainer options;
         final String raw = in.readLine();
         try {
-            options = new OptionContainer(raw.split(" "), false);
+            options = OptionContainer.fromArgs(raw.split(" "));
             writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
-        } catch (Exception e) {
+        } catch (ParseException e) {
             writer.println("illegal options: '" + raw + "'");
             e.printStackTrace(writer);
         }

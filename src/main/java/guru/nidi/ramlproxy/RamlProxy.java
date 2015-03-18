@@ -35,7 +35,7 @@ public class RamlProxy implements AutoCloseable {
     private final OptionContainer options;
 
     public static void main(String[] args) throws Exception {
-        final OptionContainer options = new OptionContainer(args, true);
+        final OptionContainer options = OptionContainer.fromCli(args);
         final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
         final RamlProxy proxy = create(saver, options);
         proxy.waitForServer();
@@ -61,6 +61,7 @@ public class RamlProxy implements AutoCloseable {
         } else {
             servlet = new ServletHolder(new ProxyServlet(testerFilter));
             servlet.setInitParameter("proxyTo", options.getTargetUrl());
+            servlet.setInitParameter("viaHost", "localhost"); //avoid calling InetAddress.getLocalHost()
         }
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
