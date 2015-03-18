@@ -16,10 +16,8 @@
 package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.ReportSaver.ReportInfo;
-import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
-import org.apache.http.HttpResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -114,18 +112,5 @@ public class ProxyTest {
         }
     }
 
-    @Test
-    public void testOptionCommand() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        try (final RamlProxy<ReportSaver> proxy = RamlProxy.create(new ReportSaver(), options)) {
-            final String optString = "-p" + sender.getPort() + " -thttps://api.github.com -i -r" + Ramls.GITHUB;
-            final HttpResponse response = sender.post("@@@proxy/options", optString);
-            assertEquals("same", sender.content(response));
-
-            final String optString2 = "-p" + sender.getPort() + " -thttps://api.github.com -r" + Ramls.GITHUB;
-            final HttpResponse response2 = sender.post("@@@proxy/options", optString2);
-            assertEquals("different", sender.content(response2));
-        }
-    }
 
 }

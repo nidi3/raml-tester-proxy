@@ -17,6 +17,7 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 
 /**
  *
@@ -79,41 +81,24 @@ public class TesterFilter implements Filter {
         final PrintWriter writer = response.getWriter();
         switch (command) {
             case "stop":
-                writer.write("Stopping proxy");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            log.info("Stopping proxy");
-                            Thread.sleep(100);
-                            proxy.close();
-                        } catch (Exception e) {
-                            log.info("Problem stopping proxy, killing instead: " + e);
-                            System.exit(1);
-                        }
-                    }
-                }).start();
+                stopCommand(writer);
                 break;
             case "options":
-                final BufferedReader in = request.getReader();
-                final OptionContainer options;
-                final String raw = in.readLine();
-                try {
-                    options = new OptionContainer(raw.split(" "), false);
-                    writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
-                } catch (Exception e) {
-                    writer.println("illegal options: '" + raw + "'");
-                    e.printStackTrace(writer);
-                }
+                optionsCommand(request.getReader(), writer);
                 break;
             //TODO rename?
             case "reload":
-                fetchRamlDefinition();
-                saver.flushReports();
-                writer.write("RAML reloaded");
-                log.info("RAML reloaded");
+                reloadCommand(writer);
                 break;
-//            case "":
+            case "usage/clear":
+                clearUsageCommand(writer);
+                break;
+            case "usage":
+                usageCommand(writer);
+                break;
+            case "reports":
+                reportsCommand(writer);
+                break;
             default:
                 log.info("Ignoring unknown command '" + command + "'");
         }
@@ -121,8 +106,73 @@ public class TesterFilter implements Filter {
         return true;
     }
 
+    private void reportsCommand(PrintWriter writer) throws IOException {
+        String res = "";
+        int id = 0;
+        for (ReportSaver.ReportInfo info : saver.getReports()) {
+            res += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
+        }
+        writer.write(jsonArray(res));
+        log.info("Reports sent");
+    }
+
+    private void usageCommand(PrintWriter writer) throws IOException {
+        String res = "";
+        for (Map.Entry<String, Usage> usage : saver.getAggregator().usages()) {
+            final DescribedUsage describedUsage = new DescribedUsage(usage.getValue());
+            res += ReportFormat.JSON.formatUsage(usage.getKey(), describedUsage) + ",";
+        }
+        writer.write(jsonArray(res));
+        log.info("Usage sent");
+    }
+
+    private void clearUsageCommand(PrintWriter writer) throws IOException {
+        saver.flushUsage();
+        writer.write("Usage cleared");
+        log.info("Usage cleared");
+    }
+
+    private void reloadCommand(PrintWriter writer) {
+        fetchRamlDefinition();
+        saver.flushReports();
+        writer.write("RAML reloaded");
+        log.info("RAML reloaded");
+    }
+
+    private void optionsCommand(BufferedReader in, PrintWriter writer) throws IOException {
+        final OptionContainer options;
+        final String raw = in.readLine();
+        try {
+            options = new OptionContainer(raw.split(" "), false);
+            writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
+        } catch (Exception e) {
+            writer.println("illegal options: '" + raw + "'");
+            e.printStackTrace(writer);
+        }
+    }
+
+    private void stopCommand(PrintWriter writer) {
+        writer.write("Stopping proxy");
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    log.info("Stopping proxy");
+                    Thread.sleep(100);
+                    proxy.close();
+                } catch (Exception e) {
+                    log.info("Problem stopping proxy, killing instead: " + e);
+                    System.exit(1);
+                }
+            }
+        }).start();
+    }
+
+    private String jsonArray(String s) {
+        return "[" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "]";
+    }
+
     private void fetchRamlDefinition() {
         ramlDefinition = proxy.fetchRamlDefinition();
     }
 }
-

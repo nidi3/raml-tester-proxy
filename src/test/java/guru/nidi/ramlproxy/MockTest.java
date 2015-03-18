@@ -16,7 +16,6 @@
 package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.ReportSaver.ReportInfo;
-import guru.nidi.ramlproxy.TestUtils.Ramls;
 import guru.nidi.ramltester.core.RamlReport;
 import org.apache.http.HttpResponse;
 import org.junit.After;

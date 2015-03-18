@@ -17,6 +17,7 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.model.Values;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 
@@ -65,13 +66,13 @@ public class ReportSaver {
 
     public static class ReportInfo {
         private final RamlReport report;
-        private final ServletRamlRequest request;
-        private final ServletRamlResponse response;
+        private final SavableServletRamlRequest request;
+        private final SavableServletRamlResponse response;
 
         public ReportInfo(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
             this.report = report;
-            this.request = request;
-            this.response = response;
+            this.request = new SavableServletRamlRequest(request);
+            this.response = new SavableServletRamlResponse(response);
         }
 
         public RamlReport getReport() {
@@ -87,4 +88,59 @@ public class ReportSaver {
         }
     }
 
+    private static class SavableServletRamlRequest extends ServletRamlRequest {
+        private final StringBuffer requestURL;
+        private final String queryString;
+        private final Values headerValues;
+        private final String method;
+
+        public SavableServletRamlRequest(ServletRamlRequest delegate) {
+            super(delegate);
+            requestURL = delegate.getRequestURL();
+            queryString = delegate.getQueryString();
+            headerValues = delegate.getHeaderValues();
+            method = delegate.getMethod();
+        }
+
+        @Override
+        public StringBuffer getRequestURL() {
+            return requestURL;
+        }
+
+        @Override
+        public String getQueryString() {
+            return queryString;
+        }
+
+        @Override
+        public Values getHeaderValues() {
+            return headerValues;
+        }
+
+        @Override
+        public String getMethod() {
+            return method;
+        }
+    }
+
+    private static class SavableServletRamlResponse extends ServletRamlResponse {
+        private final byte[] content;
+        private final Values headerValues;
+
+        public SavableServletRamlResponse(ServletRamlResponse delegate) {
+            super(delegate);
+            content = delegate.getContent();
+            headerValues = delegate.getHeaderValues();
+        }
+
+        @Override
+        public byte[] getContent() {
+            return content;
+        }
+
+        @Override
+        public Values getHeaderValues() {
+            return headerValues;
+        }
+    }
 }

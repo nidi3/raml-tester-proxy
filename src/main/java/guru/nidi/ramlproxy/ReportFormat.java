@@ -16,16 +16,20 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.model.RamlMessage;
 import guru.nidi.ramltester.model.Values;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+
+import static guru.nidi.ramlproxy.CollectionUtils.map;
 
 /**
  *
@@ -33,19 +37,19 @@ import java.util.Map;
 public enum ReportFormat {
     TEXT("log") {
         @Override
-        public String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException {
+        public String formatUsage(String key, DescribedUsage describedUsage) throws IOException {
             return describedUsage.toString();
         }
 
         @Override
-        public String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
+        public String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
             return "Request violations: " + report.getRequestViolations() + "\n\n" +
-                    Reporter.formatRequest(request) + "\n" +
+                    formatRequest(request) + "\n" +
                     formatHeaders(request.getHeaderValues()) + "\n" +
-                    Reporter.content(request, request.getCharacterEncoding()) +
+                    content(request, request.getCharacterEncoding()) +
                     "\n\n\nResponse violations: " + report.getResponseViolations() + "\n\n" +
                     formatHeaders(response.getHeaderValues()) + "\n" +
-                    Reporter.content(response, response.getCharacterEncoding());
+                    content(response, response.getCharacterEncoding());
         }
 
         private String formatHeaders(Values values) {
@@ -63,24 +67,22 @@ public enum ReportFormat {
         private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
         @Override
-        public String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException {
-            Map<String, Object> json = new HashMap<>();
-            json.put("context", key);
-            json.put("unused", describedUsage.asMap());
-            return OBJECT_MAPPER.writeValueAsString(json);
+        public String formatUsage(String key, DescribedUsage describedUsage) throws IOException {
+            return OBJECT_MAPPER.writeValueAsString(map(
+                    "context", key,
+                    "unused", describedUsage.asMap()));
         }
 
         @Override
-        public String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            Map<String, Object> json = new HashMap<>();
-            json.put("id", idValue);
-            json.put("request violations", Lists.newArrayList(report.getRequestViolations()));
-            json.put("request", Reporter.formatRequest(request));
-            json.put("request headers", request.getHeaderValues().asMap());
-            json.put("response violations", Lists.newArrayList(report.getResponseViolations()));
-            json.put("response", Reporter.content(response, response.getCharacterEncoding()));
-            json.put("response headers", response.getHeaderValues().asMap());
-            return OBJECT_MAPPER.writeValueAsString(json);
+        public String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
+            return OBJECT_MAPPER.writeValueAsString(map(
+                    "id", id,
+                    "request violations", report.getRequestViolations().asList(),
+                    "request", formatRequest(request),
+                    "request headers", request.getHeaderValues().asMap(),
+                    "response violations", report.getResponseViolations().asList(),
+                    "response", content(response, response.getCharacterEncoding()),
+                    "response headers", response.getHeaderValues().asMap()));
         }
 
     };
@@ -91,7 +93,20 @@ public enum ReportFormat {
         this.fileExtension = fileExtension;
     }
 
-    public abstract String formatUsage(Reporter reporter, String key, DescribedUsage describedUsage) throws IOException;
+    public abstract String formatUsage(String key, DescribedUsage describedUsage) throws IOException;
 
-    public abstract String formatViolations(Reporter reporter, long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
+    public abstract String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
+
+    static String formatRequest(ServletRamlRequest request) {
+        return request.getMethod() + " " + request.getRequestURL() +
+                (request.getQueryString() == null ? "" : ("?" + request.getQueryString())) +
+                " from " + request.getRemoteHost();
+
+    }
+
+    private static String content(RamlMessage message, String encoding) throws UnsupportedEncodingException {
+        return message.getContent() == null
+                ? "No content"
+                : new String(message.getContent(), StringUtils.defaultIfBlank(encoding, Charset.defaultCharset().name()));
+    }
 }

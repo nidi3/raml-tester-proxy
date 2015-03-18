@@ -23,13 +23,7 @@ import java.util.Map;
 /**
  *
  */
-class TestUtils {
-    static class Ramls {
-        public static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
-                GITHUB = LOCATION + "github-meta.raml",
-                SIMPLE = LOCATION + "simple.raml";
-    }
-
+class CollectionUtils {
     public static Map<Object, Object> map(Object... keysValues) {
         final Map<Object, Object> map = new HashMap<>();
         for (int i = 0; i < keysValues.length; i += 2) {

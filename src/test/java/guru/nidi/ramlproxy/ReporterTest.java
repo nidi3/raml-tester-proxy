@@ -26,8 +26,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.TestUtils.list;
-import static guru.nidi.ramlproxy.TestUtils.map;
+import static guru.nidi.ramlproxy.CollectionUtils.list;
+import static guru.nidi.ramlproxy.CollectionUtils.map;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 

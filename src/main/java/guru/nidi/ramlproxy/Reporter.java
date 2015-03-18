@@ -18,15 +18,15 @@ package guru.nidi.ramlproxy;
 import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
-import guru.nidi.ramltester.model.RamlMessage;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -37,8 +37,6 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  */
 public class Reporter extends ReportSaver {
-    static final String NO_CONTENT = "No content";
-
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final File saveDir;
@@ -93,16 +91,16 @@ public class Reporter extends ReportSaver {
     }
 
     private void logViolations(long idValue, RamlReport report, ServletRamlRequest request) {
-        log.error("<{}> {}\n           Request:  {}\n           Response: {}", idValue, formatRequest(request), report.getRequestViolations(), report.getResponseViolations());
+        log.error("<{}> {}\n           Request:  {}\n           Response: {}", idValue, ReportFormat.formatRequest(request), report.getRequestViolations(), report.getResponseViolations());
     }
 
-    private void fileViolations(long idValue, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    private void fileViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         if (saveDir == null) {
             return;
         }
         try {
-            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(violationsFile(idValue)))) {
-                out.write(reportFormat.formatViolations(this, idValue, report, request, response));
+            try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(violationsFile(id)))) {
+                out.write(reportFormat.formatViolations(id, report, request, response));
             }
         } catch (IOException e) {
             log.error("Problem writing error file", e);
@@ -119,23 +117,10 @@ public class Reporter extends ReportSaver {
         }
         try {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(usageFile(key)), "utf-8")) {
-                out.write(reportFormat.formatUsage(this, key, describedUsage));
+                out.write(reportFormat.formatUsage(key, describedUsage));
             }
         } catch (IOException e) {
             log.error("Problem writing error file", e);
         }
-    }
-
-    static String formatRequest(ServletRamlRequest request) {
-        return request.getMethod() + " " + request.getRequestURL() +
-                (request.getQueryString() == null ? "" : ("?" + request.getQueryString())) +
-                " from " + request.getRemoteHost();
-
-    }
-
-    static String content(RamlMessage message, String encoding) throws UnsupportedEncodingException {
-        return message.getContent() == null
-                ? NO_CONTENT
-                : new String(message.getContent(), StringUtils.defaultIfBlank(encoding, Charset.defaultCharset().name()));
     }
 }
