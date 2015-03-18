@@ -8,6 +8,7 @@ traits:
       headers:
         X-Ignore-Commands:
           description: If 'true' then ignore the command
+          type: boolean
   - json:
       responses:
         200:
@@ -20,31 +21,31 @@ traits:
             text/plain:
 
 /stop:
-  description: Stop the server
   get:
+    description: Stop the server
     is: [ignorable,text]
 
 /options:
-  description: Compare the sent options with the current ones, return 'same' or 'different'
   post:
+    description: Compare the options sent in the body with the current ones, return 'same' or 'different'
     is: [ignorable,text]
     body:
       text/plain:
 
 /reload:
-  description: Reload the RAML file and flush the reports
   get:
+    description: Reload the RAML file and flush the reports
     is: [ignorable,text]
 
 /reports:
-  description: Return all reports since startup or last reload
   get:
+    description: Return all reports since startup or last reload
     is: [ignorable,json]
 
 /usage:
   /clear:
-    description: Flush all usage data
     get:
+      description: Flush all usage data
       is: [ignorable,text]
   get:
     description: Return all usage data since startup or last usage flush

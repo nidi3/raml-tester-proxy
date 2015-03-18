@@ -17,6 +17,7 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.ReportAggregator;
 import guru.nidi.ramltester.model.Values;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
@@ -29,7 +30,15 @@ import java.util.List;
  */
 public class ReportSaver {
     private final List<ReportInfo> reports = new ArrayList<>();
-    private MultiReportAggregator aggregator = new MultiReportAggregator();
+    private final ReportAggregator aggregator;
+
+    public ReportSaver() {
+        this(new MultiReportAggregator());
+    }
+
+    public ReportSaver(ReportAggregator aggregator) {
+        this.aggregator = aggregator;
+    }
 
     public final void addReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         addingReport(report, request, response);
@@ -44,7 +53,7 @@ public class ReportSaver {
 
     public final void flushUsage() {
         flushingUsage(aggregator);
-        aggregator = new MultiReportAggregator();
+        aggregator.clear();
     }
 
     protected void addingReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
@@ -53,14 +62,14 @@ public class ReportSaver {
     protected void flushingReports(List<ReportInfo> reports) {
     }
 
-    protected void flushingUsage(MultiReportAggregator aggregator) {
+    protected void flushingUsage(ReportAggregator aggregator) {
     }
 
     public List<ReportInfo> getReports() {
         return reports;
     }
 
-    public MultiReportAggregator getAggregator() {
+    public ReportAggregator getAggregator() {
         return aggregator;
     }
 

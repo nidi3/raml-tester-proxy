@@ -15,8 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.ReportAggregator;
 import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
@@ -72,7 +72,7 @@ public class Reporter extends ReportSaver {
     }
 
     @Override
-    public void flushingUsage(MultiReportAggregator aggregator) {
+    public void flushingUsage(ReportAggregator aggregator) {
         for (Map.Entry<String, Usage> entry : aggregator.usages()) {
             final DescribedUsage describedUsage = new DescribedUsage(entry.getValue());
             logUsage(entry.getKey(), describedUsage);

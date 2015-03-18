@@ -16,13 +16,19 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.Usage;
+import guru.nidi.ramltester.core.UsageBuilder;
+import guru.nidi.ramltester.junit.ExpectedUsage;
 import org.apache.http.HttpResponse;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +46,11 @@ public class CommandTest {
     private static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
     private HttpSender mockSender = new HttpSender(8091);
     private HttpSender proxySender = new HttpSender(8090);
-    private RamlProxy mock, proxy;
+    private static SimpleReportAggregator aggregator = new UnclearableReportAggregator();
+    private static RamlProxy mock, proxy;
+
+    @ClassRule
+    public static ExpectedUsage expectedUsage = new ExpectedUsage(aggregator);
 
     @Before
     public void init() throws Exception {
@@ -51,7 +61,7 @@ public class CommandTest {
         }
         mock = RamlProxy.create(new ReportSaver(), new OptionContainer(
                 mockSender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = RamlProxy.create(new ReportSaver(), new OptionContainer(
+        proxy = RamlProxy.create(new ReportSaver(aggregator), new OptionContainer(
                 proxySender.getPort(), mockSender.url(), Ramls.COMMAND, null));
     }
 
@@ -151,6 +161,21 @@ public class CommandTest {
         final String optString2 = "-p" + mockSender.getPort() + " -thttps://api.github.com -r" + Ramls.SIMPLE;
         final HttpResponse response2 = proxySender.post("@@@proxy/options", optString2);
         assertEquals("different", proxySender.content(response2));
+    }
+
+    private static class UnclearableReportAggregator extends SimpleReportAggregator {
+        private List<RamlReport> unclearableReports = new ArrayList<>();
+
+        @Override
+        public RamlReport addReport(RamlReport report) {
+            unclearableReports.add(report);
+            return super.addReport(report);
+        }
+
+        @Override
+        public Usage getUsage() {
+            return UsageBuilder.usage(getRaml(), unclearableReports);
+        }
     }
 
 }
