@@ -32,13 +32,12 @@ import static org.junit.Assert.*;
  *
  */
 public class MockTest {
-    private static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
     private HttpSender sender = new HttpSender(8090);
     private RamlProxy proxy;
 
     @Before
     public void init() throws Exception {
-        final OptionContainer options = new OptionContainer(sender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
+        final OptionContainer options = new OptionContainer(sender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
         proxy = RamlProxy.create(new ReportSaver(), options);
     }
 

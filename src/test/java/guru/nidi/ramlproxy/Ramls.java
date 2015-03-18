@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy;
 
 class Ramls {
+    public static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
     public static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
             GITHUB = LOCATION + "github-meta.raml",
             SIMPLE = LOCATION + "simple.raml",

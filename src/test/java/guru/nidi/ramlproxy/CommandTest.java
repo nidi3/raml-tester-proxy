@@ -43,7 +43,6 @@ import static org.junit.Assert.*;
  * Test if commands satisfy RAML using Proxy
  */
 public class CommandTest {
-    private static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
     private HttpSender mockSender = new HttpSender(8091);
     private HttpSender proxySender = new HttpSender(8090);
     private static SimpleReportAggregator aggregator = new UnclearableReportAggregator();
@@ -60,7 +59,7 @@ public class CommandTest {
         } catch (Exception e) {
         }
         mock = RamlProxy.create(new ReportSaver(), new OptionContainer(
-                mockSender.getPort(), MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
+                mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
         proxy = RamlProxy.create(new ReportSaver(aggregator), new OptionContainer(
                 proxySender.getPort(), mockSender.url(), Ramls.COMMAND, null));
     }
@@ -154,7 +153,7 @@ public class CommandTest {
 
     @Test
     public void options() throws Exception {
-        final String optString = "-p" + mockSender.getPort() + " -m" + MOCK_DIR + " -i -r" + Ramls.SIMPLE + " -bhttp://nidi.guru/raml -starget";
+        final String optString = "-p" + mockSender.getPort() + " -m" + Ramls.MOCK_DIR + " -i -r" + Ramls.SIMPLE + " -bhttp://nidi.guru/raml -starget";
         final HttpResponse response = proxySender.post("@@@proxy/options", optString);
         assertEquals("same", proxySender.content(response));
 

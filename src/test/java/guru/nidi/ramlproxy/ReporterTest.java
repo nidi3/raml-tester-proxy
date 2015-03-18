@@ -35,7 +35,6 @@ import static org.junit.Assert.*;
  *
  */
 public class ReporterTest {
-    private static final String SIMPLE_RAML = "file://src/test/resources/guru/nidi/ramlproxy/simple.raml";
     private static TomcatServer tomcat;
     private HttpSender sender = new HttpSender(8091);
 
@@ -93,7 +92,7 @@ public class ReporterTest {
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File("target"), format);
         try (final RamlProxy proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
-                tomcat.url(), SIMPLE_RAML, "http://nidi.guru/raml/v1"))) {
+                tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"))) {
             final String res = sender.contentOfGet("data?param=1");
 
             assertEquals("illegal json", res);
