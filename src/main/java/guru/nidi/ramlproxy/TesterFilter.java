@@ -17,10 +17,8 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
-import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
-import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map;
 
 /**
  *
@@ -38,9 +35,6 @@ import java.util.Map;
 public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
     static final String COMMAND_PATH = "/@@@proxy";
-    static final String IGNORE_COMMANDS_HEADER = "X-Ignore-Commands";
-    private static final String TEXT = "text/plain";
-    private static final String JSON = "application/json";
 
     private final RamlProxy proxy;
     private final ReportSaver saver;
@@ -79,113 +73,38 @@ public class TesterFilter implements Filter {
     }
 
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        if (!request.getPathInfo().startsWith(COMMAND_PATH) || "true".equals(request.getHeader(IGNORE_COMMANDS_HEADER))) {
+        if (!request.getPathInfo().startsWith(COMMAND_PATH) || CommandDecorators.IGNORE_COMMANDS.isSet(request)) {
             return false;
         }
-        final String command = request.getPathInfo().substring(10);
+        final String commandStr = request.getPathInfo().substring(10);
+        final BufferedReader reader = request.getReader();
         final PrintWriter writer = response.getWriter();
-        switch (command) {
-            case "stop":
-                response.setContentType(TEXT);
-                stopCommand(writer);
-                break;
-            case "options":
-                response.setContentType(TEXT);
-                optionsCommand(request.getReader(), writer);
-                break;
-            //TODO rename?
-            case "reload":
-                response.setContentType(TEXT);
-                reloadCommand(writer);
-                break;
-            case "usage/clear":
-                response.setContentType(TEXT);
-                clearUsageCommand(writer);
-                break;
-            case "usage":
-                response.setContentType(JSON);
-                usageCommand(writer);
-                break;
-            case "reports":
-                response.setContentType(JSON);
-                reportsCommand(writer);
-                break;
-            default:
-                log.info("Ignoring unknown command '" + command + "'");
+        final Command command = Command.byName(commandStr);
+        if (command == null) {
+            log.info("Ignoring unknown command '" + commandStr + "'");
+        } else {
+            command.apply(response);
+            command.execute(this, reader, writer);
+        }
+        if (CommandDecorators.CLEAR_REPORTS.isSet(request)) {
+            Command.CLEAR_REPORTS.execute(this, reader, writer);
+        }
+        if (CommandDecorators.CLEAR_USAGE.isSet(request)) {
+            Command.CLEAR_USAGE.execute(this, reader, writer);
         }
         writer.flush();
         return true;
     }
 
-    private void reportsCommand(PrintWriter writer) throws IOException {
-        String res = "";
-        int id = 0;
-        for (ReportSaver.ReportInfo info : saver.getReports()) {
-            if (!info.getReport().isEmpty()) {
-                res += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
-            }
-        }
-        writer.write(jsonArray(res));
-        log.info("Reports sent");
-    }
-
-    private void usageCommand(PrintWriter writer) throws IOException {
-        String res = "";
-        for (Map.Entry<String, Usage> usage : saver.getAggregator().usages()) {
-            final DescribedUsage describedUsage = new DescribedUsage(usage.getValue());
-            res += ReportFormat.JSON.formatUsage(usage.getKey(), describedUsage) + ",";
-        }
-        writer.write(jsonArray(res));
-        log.info("Usage sent");
-    }
-
-    private void clearUsageCommand(PrintWriter writer) throws IOException {
-        saver.flushUsage();
-        writer.write("Usage cleared");
-        log.info("Usage cleared");
-    }
-
-    private void reloadCommand(PrintWriter writer) {
-        fetchRamlDefinition();
-        saver.flushReports();
-        writer.write("RAML reloaded");
-        log.info("RAML reloaded");
-    }
-
-    private void optionsCommand(BufferedReader in, PrintWriter writer) throws IOException {
-        final OptionContainer options;
-        final String raw = in.readLine();
-        try {
-            options = OptionContainer.fromArgs(raw.split(" "));
-            writer.write(options.equals(proxy.getOptions()) ? "same" : "different");
-        } catch (ParseException e) {
-            writer.println("illegal options: '" + raw + "'");
-            e.printStackTrace(writer);
-        }
-    }
-
-    private void stopCommand(PrintWriter writer) {
-        writer.write("Stopping proxy");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    log.info("Stopping proxy");
-                    Thread.sleep(100);
-                    proxy.close();
-                } catch (Exception e) {
-                    log.info("Problem stopping proxy, killing instead: " + e);
-                    System.exit(1);
-                }
-            }
-        }).start();
-    }
-
-    private String jsonArray(String s) {
-        return "[" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "]";
-    }
-
-    private void fetchRamlDefinition() {
+    void fetchRamlDefinition() {
         ramlDefinition = proxy.fetchRamlDefinition();
+    }
+
+    RamlProxy getProxy() {
+        return proxy;
+    }
+
+    ReportSaver getSaver() {
+        return saver;
     }
 }

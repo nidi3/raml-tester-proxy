@@ -4,10 +4,17 @@ title: raml-proxy
 baseUri: http://{host}/@@@proxy
 version: v1
 traits:
-  - ignorable:
+  - headers:
       headers:
         X-Ignore-Commands:
-          description: If 'true' then ignore the command
+          description: If set and not 'false' then ignore the command.
+          type: boolean
+      queryParameters:
+        clear-reports:
+          description: If set and not 'false' than clear the current reports.
+          type: boolean
+        clear-usage:
+          description: If set and not 'false' then clear the current usage.
           type: boolean
   - json:
       responses:
@@ -20,34 +27,39 @@ traits:
           body:
             text/plain:
 
+/ping:
+  get:
+    description: If the server is alive, it will respond with 'Pong'.
+    is: [headers,text]
+
 /stop:
   get:
-    description: Stop the server
-    is: [ignorable,text]
+    description: Stop the server.
+    is: [headers,text]
 
 /options:
   post:
-    description: Compare the options sent in the body with the current ones, return 'same' or 'different'
-    is: [ignorable,text]
+    description: Compare the options sent in the body with the current ones, return 'same' or 'different'.
+    is: [headers,text]
     body:
       text/plain:
 
 /reload:
   get:
-    description: Reload the RAML file and flush the reports
-    is: [ignorable,text]
+    description: Reload the RAML file and flush the reports.
+    is: [headers,text]
 
 /reports:
   get:
-    description: Return all reports since startup or last reload
-    is: [ignorable,json]
+    description: Return all reports since startup or last reload.
+    is: [headers,json]
 
 /usage:
   /clear:
     get:
-      description: Flush all usage data
-      is: [ignorable,text]
+      description: Flush all usage data.
+      is: [headers,text]
   get:
-    description: Return all usage data since startup or last usage flush
-    is: [ignorable,json]
+    description: Return all usage data since startup or last usage flush.
+    is: [headers,json]
 

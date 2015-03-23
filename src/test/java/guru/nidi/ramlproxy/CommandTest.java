@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static guru.nidi.ramlproxy.CollectionUtils.list;
 import static guru.nidi.ramlproxy.CollectionUtils.map;
+import static guru.nidi.ramlproxy.Command.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
@@ -79,7 +80,7 @@ public class CommandTest {
         mockSender.get("v1/data?q=1");
         Thread.sleep(10);
 
-        final HttpResponse res = proxySender.get("/@@@proxy/reports");
+        final HttpResponse res = mockSender.get(mock.commandUrl(REPORTS));
         final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(list(map(
                         "id", 0,
@@ -98,7 +99,7 @@ public class CommandTest {
 
     @Test
     public void stop() throws Exception {
-        proxySender.get("/@@@proxy/stop");
+        proxySender.get(proxy.commandUrl(STOP));
         Thread.sleep(200);
         assertTrue(mock.isStopped());
     }
@@ -109,7 +110,7 @@ public class CommandTest {
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        final HttpResponse res = proxySender.get("/@@@proxy/usage");
+        final HttpResponse res = proxySender.get(proxy.commandUrl(USAGE));
         final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(list(map(
                         "context", "simple",
@@ -130,23 +131,22 @@ public class CommandTest {
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        proxySender.get("/@@@proxy/usage/clear");
-        final HttpResponse res = proxySender.get("/@@@proxy/usage");
+        proxySender.get(proxy.commandUrl(PING) + "?clear-usage=true");
+        final HttpResponse res = proxySender.get(proxy.commandUrl(USAGE));
         final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertTrue(actual.isEmpty());
     }
-
     @Test
     public void reload() throws Exception {
         mockSender.get("meta");
         Thread.sleep(10);
 
-        final HttpResponse res = proxySender.get("@@@proxy/reports");
+        final HttpResponse res = proxySender.get(proxy.commandUrl(REPORTS)+"?clear-reports=true");
         final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
         assertEquals(1, actual.size());
 
-        assertThat(proxySender.contentOfGet("@@@proxy/reload"), equalTo("RAML reloaded"));
-        final HttpResponse res2 = proxySender.get("@@@proxy/reports");
+        assertThat(proxySender.contentOfGet(proxy.commandUrl(RELOAD)), equalTo("RAML reloaded"));
+        final HttpResponse res2 = proxySender.get(proxy.commandUrl(REPORTS));
         final List actual2 = new ObjectMapper().readValue(proxySender.content(res2), List.class);
         assertEquals(0, actual2.size());
     }
@@ -154,12 +154,17 @@ public class CommandTest {
     @Test
     public void options() throws Exception {
         final String optString = "-p" + mockSender.getPort() + " -m" + Ramls.MOCK_DIR + " -i -r" + Ramls.SIMPLE + " -bhttp://nidi.guru/raml -starget";
-        final HttpResponse response = proxySender.post("@@@proxy/options", optString);
+        final HttpResponse response = proxySender.post(proxy.commandUrl(OPTIONS), optString);
         assertEquals("same", proxySender.content(response));
 
         final String optString2 = "-p" + mockSender.getPort() + " -thttps://api.github.com -r" + Ramls.SIMPLE;
-        final HttpResponse response2 = proxySender.post("@@@proxy/options", optString2);
+        final HttpResponse response2 = proxySender.post(proxy.commandUrl(OPTIONS), optString2);
         assertEquals("different", proxySender.content(response2));
+    }
+
+    @Test
+    public void ping() throws Exception {
+        assertEquals(proxySender.contentOfGet(proxy.commandUrl(PING)), "Pong");
     }
 
     private static class UnclearableReportAggregator extends SimpleReportAggregator {

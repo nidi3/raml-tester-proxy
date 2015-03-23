@@ -68,6 +68,7 @@ public class MockServlet extends HttpServlet {
         handleMeta(req, res, file.getParentFile(), file.getName());
         res.setContentLength((int) file.length());
         res.setContentType(mineType(file));
+        res.setHeader("Access-Control-Allow-Origin", "*");
         try (final InputStream in = new FileInputStream(file)) {
             copy(in, out);
         } catch (IOException e) {

@@ -79,7 +79,7 @@ public class ProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transpare
     protected void sendProxyRequest(HttpServletRequest request, HttpServletResponse response, Request proxyRequest) {
         final HttpFields headers = proxyRequest.getHeaders();
         headers.remove("Host");
-        headers.remove(TesterFilter.IGNORE_COMMANDS_HEADER);
+        CommandDecorators.IGNORE_COMMANDS.removeFrom(proxyRequest);
         super.sendProxyRequest(request, response, proxyRequest);
     }
 }

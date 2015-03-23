@@ -54,7 +54,7 @@ public class HttpSender {
     }
 
     public String url(String path) {
-        return url() + "/" + path;
+        return path.startsWith("http") ? path : (url() + "/" + path);
     }
 
     public int getPort() {
@@ -73,7 +73,7 @@ public class HttpSender {
     public HttpResponse get(String path) throws IOException {
         final HttpGet get = new HttpGet(url(path));
         if (ignoreCommands) {
-            get.addHeader(TesterFilter.IGNORE_COMMANDS_HEADER, "true");
+            get.addHeader(CommandDecorators.IGNORE_COMMANDS.getName(), "true");
         }
         return client.execute(get);
     }
@@ -84,7 +84,7 @@ public class HttpSender {
             post.setEntity(new StringEntity(data));
         }
         if (ignoreCommands) {
-            post.addHeader(TesterFilter.IGNORE_COMMANDS_HEADER, "true");
+            post.addHeader(CommandDecorators.IGNORE_COMMANDS.getName(), "true");
         }
         return client.execute(post);
     }

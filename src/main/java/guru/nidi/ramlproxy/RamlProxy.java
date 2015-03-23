@@ -103,6 +103,10 @@ public class RamlProxy implements AutoCloseable {
         return server.isStopped();
     }
 
+    public String commandUrl(Command command) {
+        return "http://localhost:" + options.getPort() + TesterFilter.COMMAND_PATH + "/" + command.getName();
+    }
+
     private static Thread shutdownHook(final ReportSaver saver) {
         final Thread thread = new Thread(new Runnable() {
             @Override
