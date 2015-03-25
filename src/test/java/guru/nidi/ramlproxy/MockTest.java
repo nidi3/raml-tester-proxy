@@ -122,7 +122,7 @@ public class MockTest {
     }
 
     private RamlReport assertOneReport() {
-        final List<ReportInfo> reports = proxy.getSaver().getReports();
+        final List<ReportInfo> reports = proxy.getSaver().getReports("simple");
         assertEquals(1, reports.size());
         return reports.get(0).getReport();
     }

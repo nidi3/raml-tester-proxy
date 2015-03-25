@@ -53,7 +53,7 @@ public class ProxyTest {
 
             assertEquals("42", res);
 
-            final List<ReportInfo> reports = proxy.getSaver().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports("simple");
             assertEquals(1, reports.size());
 
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
@@ -69,7 +69,7 @@ public class ProxyTest {
 
             assertEquals("illegal json", res);
 
-            final List<ReportInfo> reports = proxy.getSaver().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports("simple");
             assertEquals(1, reports.size());
 
             final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
@@ -90,7 +90,7 @@ public class ProxyTest {
         try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
-            final List<ReportInfo> reports = proxy.getSaver().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports("github-meta");
             assertEquals(1, reports.size());
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
             for (final String resViol : reports.get(0).getReport().getResponseViolations()) {
@@ -105,7 +105,7 @@ public class ProxyTest {
         try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(), options)) {
             sender.contentOfGet("meta");
 
-            final List<ReportInfo> reports = proxy.getSaver().getReports();
+            final List<ReportInfo> reports = proxy.getSaver().getReports("github-meta");
             assertEquals(1, reports.size());
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
             assertTrue(reports.get(0).getReport().getResponseViolations().isEmpty());

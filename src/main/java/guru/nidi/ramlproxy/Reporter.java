@@ -66,7 +66,7 @@ public class Reporter extends ReportSaver {
     }
 
     @Override
-    protected void flushingReports(List<ReportInfo> reports) {
+    protected void flushingReports(Iterable<Map.Entry<String, List<ReportInfo>>> reports) {
         startup = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(new Date());
         id = new AtomicLong();
     }

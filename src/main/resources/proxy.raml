@@ -50,6 +50,10 @@ traits:
     is: [headers,text]
 
 /reports:
+  /clear:
+    get:
+      description: Flush all reports.
+      is: [headers,text]
   get:
     description: Return all reports since startup or last reload.
     is: [headers,json]

@@ -89,7 +89,7 @@ public enum ReportFormat {
 
     final String fileExtension;
 
-    private ReportFormat(String fileExtension) {
+    ReportFormat(String fileExtension) {
         this.fileExtension = fileExtension;
     }
 

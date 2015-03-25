@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,7 +34,7 @@ enum Command {
     PING("ping", Type.TEXT) {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
-            writer.write("Pong");
+            writer.print("Pong");
             log("Pong");
         }
     },
@@ -41,14 +42,14 @@ enum Command {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
             testerFilter.fetchRamlDefinition();
-            writer.write("RAML reloaded");
+            writer.print("RAML reloaded");
             log("RAML reloaded");
         }
     },
     STOP("stop", Type.TEXT) {
         @Override
         public void execute(final TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
-            writer.write("Stopping proxy");
+            writer.print("Stopping proxy");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -70,9 +71,9 @@ enum Command {
             final String raw = reader.readLine();
             try {
                 final OptionContainer options = OptionContainer.fromArgs(raw.split(" "));
-                writer.write(options.equals(testerFilter.getProxy().getOptions()) ? "same" : "different");
+                writer.print(options.equals(testerFilter.getProxy().getOptions()) ? "same" : "different");
             } catch (ParseException e) {
-                writer.println("illegal options: '" + raw + "'");
+                writer.print("illegal options: '" + raw + "'");
                 e.printStackTrace(writer);
             }
         }
@@ -83,9 +84,9 @@ enum Command {
             String res = "";
             for (Map.Entry<String, Usage> usage : testerFilter.getSaver().getAggregator().usages()) {
                 final DescribedUsage describedUsage = new DescribedUsage(usage.getValue());
-                res += ReportFormat.JSON.formatUsage(usage.getKey(), describedUsage) + ",";
+                res += "\"" + usage.getKey() + "\":" + ReportFormat.JSON.formatUsage(usage.getKey(), describedUsage) + ",";
             }
-            writer.write(jsonArray(res));
+            writer.print(jsonObject(res));
             log("Usage sent");
         }
     },
@@ -94,12 +95,15 @@ enum Command {
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             String res = "";
             int id = 0;
-            for (ReportSaver.ReportInfo info : testerFilter.getSaver().getReports()) {
-                if (!info.getReport().isEmpty()) {
-                    res += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
+            for (Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : testerFilter.getSaver().getReports()) {
+                res += "\"" + infoMap.getKey() + "\":";
+                String list = "";
+                for (ReportSaver.ReportInfo info : infoMap.getValue()) {
+                    list += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
                 }
+                res += jsonArray(list) + ",";
             }
-            writer.write(jsonArray(res));
+            writer.print(jsonObject(res));
             log("Reports sent");
         }
     },
@@ -107,7 +111,7 @@ enum Command {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             testerFilter.getSaver().flushReports();
-            writer.write("Reports cleared");
+            writer.print("Reports cleared");
             log("Reports cleared");
         }
     },
@@ -115,7 +119,7 @@ enum Command {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             testerFilter.getSaver().flushUsage();
-            writer.write("Usage cleared");
+            writer.print("Usage cleared");
             log("Usage cleared");
         }
     };
@@ -131,7 +135,7 @@ enum Command {
     private final String name;
     private final String type;
 
-    private Command(String name, String type) {
+    Command(String name, String type) {
         this.name = name;
         this.type = type;
     }
@@ -157,6 +161,10 @@ enum Command {
 
     private static String jsonArray(String s) {
         return "[" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "]";
+    }
+
+    private static String jsonObject(String s) {
+        return "{" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "}";
     }
 
     private static void log(String message) {

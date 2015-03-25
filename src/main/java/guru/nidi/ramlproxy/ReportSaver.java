@@ -23,13 +23,15 @@ import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
 public class ReportSaver {
-    private final List<ReportInfo> reports = new ArrayList<>();
+    private final Map<String, List<ReportInfo>> reports = new HashMap<>();
     private final ReportAggregator aggregator;
 
     public ReportSaver() {
@@ -40,14 +42,14 @@ public class ReportSaver {
         this.aggregator = aggregator;
     }
 
-    public final void addReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
+    public final synchronized void addReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         addingReport(report, request, response);
         aggregator.addReport(report);
-        reports.add(new ReportInfo(report, request, response));
+        getOrCreateInfos(report.getRaml().getTitle()).add(new ReportInfo(report, request, response));
     }
 
-    public final void flushReports() {
-        flushingReports(reports);
+    public final synchronized void flushReports() {
+        flushingReports(reports.entrySet());
         reports.clear();
     }
 
@@ -59,18 +61,31 @@ public class ReportSaver {
     protected void addingReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
     }
 
-    protected void flushingReports(List<ReportInfo> reports) {
+    protected void flushingReports(Iterable<Map.Entry<String, List<ReportInfo>>> reports) {
     }
 
     protected void flushingUsage(ReportAggregator aggregator) {
     }
 
-    public List<ReportInfo> getReports() {
-        return reports;
+    public synchronized Iterable<Map.Entry<String, List<ReportInfo>>> getReports() {
+        return reports.entrySet();
+    }
+
+    public synchronized List<ReportInfo> getReports(String context){
+        return reports.get(context);
     }
 
     public ReportAggregator getAggregator() {
         return aggregator;
+    }
+
+    private List<ReportInfo> getOrCreateInfos(String name) {
+        List<ReportInfo> reportList = reports.get(name);
+        if (reportList == null) {
+            reportList = new ArrayList<>();
+            reports.put(name, reportList);
+        }
+        return reportList;
     }
 
     public static class ReportInfo {

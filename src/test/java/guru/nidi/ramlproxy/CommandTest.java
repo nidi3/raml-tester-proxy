@@ -20,6 +20,7 @@ import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.core.UsageBuilder;
+import guru.nidi.ramltester.core.UsageItem;
 import guru.nidi.ramltester.junit.ExpectedUsage;
 import org.apache.http.HttpResponse;
 import org.junit.After;
@@ -28,6 +29,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +52,8 @@ public class CommandTest {
     private static RamlProxy mock, proxy;
 
     @ClassRule
-    public static ExpectedUsage expectedUsage = new ExpectedUsage(aggregator);
+    public static ExpectedUsage expectedUsage = new ExpectedUsage(aggregator,
+            UsageItem.ACTION, UsageItem.FORM_PARAMETER, UsageItem.REQUEST_HEADER, UsageItem.RESOURCE, UsageItem.RESPONSE_CODE, UsageItem.RESPONSE_HEADER);
 
     @Before
     public void init() throws Exception {
@@ -69,7 +72,7 @@ public class CommandTest {
     public void end() throws Exception {
         mock.close();
         proxy.close();
-        for (ReportSaver.ReportInfo info : proxy.getSaver().getReports()) {
+        for (ReportSaver.ReportInfo info : proxy.getSaver().getReports("raml-proxy")) {
             final RamlReport report = info.getReport();
             assertTrue(report.getRequestViolations() + "\n" + report.getResponseViolations(), report.isEmpty());
         }
@@ -80,20 +83,20 @@ public class CommandTest {
         mockSender.get("v1/data?q=1");
         Thread.sleep(10);
 
-        final HttpResponse res = mockSender.get(mock.commandUrl(REPORTS));
-        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
-        assertEquals(list(map(
+        final HttpResponse res = proxySender.get(proxy.commandUrl(REPORTS));
+        final Map<String, List<Map<String, Object>>> actual = mapped(proxySender.content(res), Map.class);
+        assertEquals(map("simple", list(map(
                         "id", 0,
                         "request violations", list(),
                         "request", "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
                         "request headers", map(
                                 "Connection", list("keep-alive"),
-                                "User-Agent", ((Map) ((Map) actual.get(0)).get("request headers")).get("User-Agent"),
+                                "User-Agent", ((Map) actual.get("simple").get(0).get("request headers")).get("User-Agent"),
                                 "Host", list("localhost:" + mockSender.getPort()),
                                 "Accept-Encoding", list("gzip,deflate")),
                         "response violations", list("Response(202) is not defined on action(GET /data)"),
                         "response", "42",
-                        "response headers", map("X-meta", list("get!")))),
+                        "response headers", map("X-meta", list("get!"))))),
                 actual);
     }
 
@@ -111,8 +114,8 @@ public class CommandTest {
         Thread.sleep(10);
 
         final HttpResponse res = proxySender.get(proxy.commandUrl(USAGE));
-        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
-        assertEquals(list(map(
+        final Map<String, Object> actual = mapped(proxySender.content(res), Map.class);
+        assertEquals(map("simple", map(
                         "context", "simple",
                         "unused", map(
                                 "request headers", list("head in GET /data"),
@@ -126,28 +129,53 @@ public class CommandTest {
     }
 
     @Test
-    public void clearUsage() throws Exception {
+    public void clearUsageQuery() throws Exception {
         mockSender.contentOfGet("v1/data?q=1");
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
         proxySender.get(proxy.commandUrl(PING) + "?clear-usage=true");
         final HttpResponse res = proxySender.get(proxy.commandUrl(USAGE));
-        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
+        final Map<String, Object> actual = mapped(proxySender.content(res), Map.class);
         assertTrue(actual.isEmpty());
     }
+
+    @Test
+    public void clearUsageUrl() throws Exception {
+        mockSender.contentOfGet("v1/data?q=1");
+        mockSender.contentOfGet("v1/other");
+        Thread.sleep(10);
+
+        proxySender.get(proxy.commandUrl(CLEAR_USAGE));
+        final HttpResponse res = proxySender.get(proxy.commandUrl(USAGE));
+        final Map<String, Object> actual = mapped(proxySender.content(res), Map.class);
+        assertTrue(actual.isEmpty());
+    }
+
+    @Test
+    public void clearReportsUrl() throws Exception {
+        mockSender.contentOfGet("v1/data?q=1");
+        mockSender.contentOfGet("v1/other");
+        Thread.sleep(10);
+
+        proxySender.get(proxy.commandUrl(CLEAR_REPORTS));
+        final HttpResponse res = proxySender.get(proxy.commandUrl(REPORTS));
+        final Map<String, Object> actual = mapped(proxySender.content(res), Map.class);
+        assertTrue(actual.isEmpty());
+    }
+
     @Test
     public void reload() throws Exception {
         mockSender.get("meta");
         Thread.sleep(10);
 
-        final HttpResponse res = proxySender.get(proxy.commandUrl(REPORTS)+"?clear-reports=true");
-        final List actual = new ObjectMapper().readValue(proxySender.content(res), List.class);
-        assertEquals(1, actual.size());
+        final HttpResponse res = proxySender.get(proxy.commandUrl(REPORTS) + "?clear-reports=true");
+        final Map<String, List> actual = mapped(proxySender.content(res), Map.class);
+        assertEquals(1, actual.get("simple").size());
 
         assertThat(proxySender.contentOfGet(proxy.commandUrl(RELOAD)), equalTo("RAML reloaded"));
         final HttpResponse res2 = proxySender.get(proxy.commandUrl(REPORTS));
-        final List actual2 = new ObjectMapper().readValue(proxySender.content(res2), List.class);
+        final Map<String, List> actual2 = mapped(proxySender.content(res2), Map.class);
         assertEquals(0, actual2.size());
     }
 
@@ -165,6 +193,11 @@ public class CommandTest {
     @Test
     public void ping() throws Exception {
         assertEquals(proxySender.contentOfGet(proxy.commandUrl(PING)), "Pong");
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T mapped(String source, Class<?> target) throws IOException {
+        return (T) new ObjectMapper().readValue(source, target);
     }
 
     private static class UnclearableReportAggregator extends SimpleReportAggregator {

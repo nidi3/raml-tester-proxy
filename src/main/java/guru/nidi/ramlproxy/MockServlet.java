@@ -61,6 +61,7 @@ public class MockServlet extends HttpServlet {
         final ServletOutputStream out = res.getOutputStream();
         final File targetDir = new File(mockDir, path);
         final File file = findFileOrParent(targetDir, name, req.getMethod());
+        CommandDecorators.ALLOW_ORIGIN.set(req,res);
         if (file == null) {
             res.sendError(HttpServletResponse.SC_NOT_FOUND, "No or multiple file '" + name + "' found in directory '" + targetDir.getAbsolutePath() + "'");
             return;
@@ -68,7 +69,6 @@ public class MockServlet extends HttpServlet {
         handleMeta(req, res, file.getParentFile(), file.getName());
         res.setContentLength((int) file.length());
         res.setContentType(mineType(file));
-        res.setHeader("Access-Control-Allow-Origin", "*");
         try (final InputStream in = new FileInputStream(file)) {
             copy(in, out);
         } catch (IOException e) {
@@ -79,7 +79,7 @@ public class MockServlet extends HttpServlet {
 
     private File findFileOrParent(File targetDir, String name, String method) {
         File file = findFile(targetDir, name, method);
-        while (file == null && !targetDir.equals(mockDir.getParentFile())) {
+        while (file == null && targetDir != null && !targetDir.equals(mockDir.getParentFile())) {
             file = findFile(targetDir, "RESPONSE", method);
             targetDir = targetDir.getParentFile();
         }

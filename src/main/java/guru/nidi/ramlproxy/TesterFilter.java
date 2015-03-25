@@ -76,6 +76,7 @@ public class TesterFilter implements Filter {
         if (!request.getPathInfo().startsWith(COMMAND_PATH) || CommandDecorators.IGNORE_COMMANDS.isSet(request)) {
             return false;
         }
+        CommandDecorators.ALLOW_ORIGIN.set(request, response);
         final String commandStr = request.getPathInfo().substring(10);
         final BufferedReader reader = request.getReader();
         final PrintWriter writer = response.getWriter();
@@ -87,9 +88,11 @@ public class TesterFilter implements Filter {
             command.execute(this, reader, writer);
         }
         if (CommandDecorators.CLEAR_REPORTS.isSet(request)) {
+            writer.println();
             Command.CLEAR_REPORTS.execute(this, reader, writer);
         }
         if (CommandDecorators.CLEAR_USAGE.isSet(request)) {
+            writer.println();
             Command.CLEAR_USAGE.execute(this, reader, writer);
         }
         writer.flush();

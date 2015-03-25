@@ -73,8 +73,17 @@ public class HttpSender {
     public HttpResponse get(String path) throws IOException {
         final HttpGet get = new HttpGet(url(path));
         if (ignoreCommands) {
-            get.addHeader(CommandDecorators.IGNORE_COMMANDS.getName(), "true");
+            CommandDecorators.IGNORE_COMMANDS.set(get, null);
         }
+        return client.execute(get);
+    }
+
+    public HttpResponse corsGet(String path,String origin) throws IOException {
+        final HttpGet get = new HttpGet(url(path));
+        if (ignoreCommands) {
+            CommandDecorators.IGNORE_COMMANDS.set(get, null);
+        }
+        get.setHeader("Origin",origin);
         return client.execute(get);
     }
 
@@ -84,7 +93,7 @@ public class HttpSender {
             post.setEntity(new StringEntity(data));
         }
         if (ignoreCommands) {
-            post.addHeader(CommandDecorators.IGNORE_COMMANDS.getName(), "true");
+            CommandDecorators.IGNORE_COMMANDS.set(post, null);
         }
         return client.execute(post);
     }

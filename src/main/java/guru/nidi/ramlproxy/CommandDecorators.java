@@ -15,22 +15,38 @@
  */
 package guru.nidi.ramlproxy;
 
+import org.apache.http.client.methods.HttpRequestBase;
 import org.eclipse.jetty.client.api.Request;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  *
  */
 enum CommandDecorators {
-    IGNORE_COMMANDS("X-Ignore-Commands", true),
+    IGNORE_COMMANDS("X-Ignore-Commands", true) {
+        @Override
+        public void set(Object req, HttpServletResponse res) {
+            ((HttpRequestBase) req).addHeader(getName(), "true");
+        }
+    },
     CLEAR_REPORTS("clear-reports", false),
-    CLEAR_USAGE("clear-usage", false);
+    CLEAR_USAGE("clear-usage", false),
+    ALLOW_ORIGIN("Access-Control-Allow-Origin", true) {
+        @Override
+        public void set(Object req, HttpServletResponse res) {
+            final String origin = ((HttpServletRequest) req).getHeader("Origin");
+            if (origin != null) {
+                res.setHeader(getName(), origin);
+            }
+        }
+    };
 
     private final String name;
     private final boolean header;
 
-    private CommandDecorators(String name, boolean header) {
+    CommandDecorators(String name, boolean header) {
         this.name = name;
         this.header = header;
     }
@@ -43,6 +59,10 @@ enum CommandDecorators {
             value = request.getParameter(name);
         }
         return value != null && !value.equalsIgnoreCase("false");
+    }
+
+    public void set(Object req, HttpServletResponse res) {
+        throw new UnsupportedOperationException();
     }
 
     public void removeFrom(Request proxyRequest) {
