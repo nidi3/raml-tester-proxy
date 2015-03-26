@@ -63,6 +63,7 @@ public class Main {
             stopRunningServer(options.getPort());
             startNewServer(classPath, sop.argsWithoutAsync(args));
         } else {
+            stopRunningServer(options.getPort());
             final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
             final RamlProxy proxy = RamlProxy.create(saver, options);
             proxy.waitForServer();
