@@ -42,13 +42,21 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
         final String target = cmd.getOptionValue('t');
         final File mockDir = parseMockDir(cmd);
         final String ramlUri = cmd.getOptionValue('r');
-        final String baseUri = cmd.getOptionValue('b');
+        final String baseUri = parseBaseUri(cmd);
         final boolean ignoreXheaders = cmd.hasOption('i');
         final String saveDirName = cmd.getOptionValue('s');
         final File saveDir = parseSaveDir(saveDirName);
         final ReportFormat fileFormat = parseReportFormat(cmd);
         final boolean asyncMode = cmd.hasOption('a');
         return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, asyncMode);
+    }
+
+    private String parseBaseUri(CommandLine cmd) throws ParseException {
+        final String baseUri = cmd.getOptionValue('b');
+        if (baseUri != null && !baseUri.startsWith("http://") && !baseUri.startsWith("https://")) {
+            throw new ParseException("Invalid baseURI: '" + baseUri + "', must start with http:// or https://");
+        }
+        return baseUri;
     }
 
     private void checkEitherTargetOrMockDir(CommandLine cmd) throws ParseException {

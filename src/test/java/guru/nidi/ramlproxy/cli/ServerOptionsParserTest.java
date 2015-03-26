@@ -15,9 +15,12 @@
  */
 package guru.nidi.ramlproxy.cli;
 
+import guru.nidi.ramlproxy.RamlProxy;
 import guru.nidi.ramlproxy.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramlproxy.report.ReportSaver;
 import org.apache.commons.cli.ParseException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,6 +35,15 @@ public class ServerOptionsParserTest {
     private final ServerOptionsParser parser = new ServerOptionsParser();
 
     @Test
+    @Ignore
+    public void cors() throws Exception {
+        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(),
+                new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"))) {
+            proxy.waitForServer();
+        }
+    }
+
+    @Test
     public void minimalTarget() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target"});
         assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", "raml", null), opt);
@@ -39,13 +51,13 @@ public class ServerOptionsParserTest {
 
     @Test
     public void minimalMock() throws ParseException {
-        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "-b", "base"});
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "-b", "http://base"});
         assertEquals(new ServerOptions(DEFAULT_PORT, "mock-files", "raml", "base"), opt);
     }
 
     @Test
     public void mockDir() throws ParseException {
-        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "mocks", "-b", "base"});
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "mocks", "-b", "http://base"});
         assertEquals(new ServerOptions(DEFAULT_PORT, "mocks", "raml", "base"), opt);
     }
 
@@ -99,4 +111,11 @@ public class ServerOptionsParserTest {
     public void mockWithoutBase() throws ParseException {
         parser.fromArgs(new String[]{"-r", "raml", "-m"});
     }
+
+    @Test(expected = ParseException.class)
+    public void wrongBaseUri() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "-b", "base"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "mock-files", "raml", "base"), opt);
+    }
+
 }
