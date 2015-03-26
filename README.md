@@ -14,7 +14,21 @@ and access the service using localhost:8099.
 Every request or response that does not match the RAML definition will be logged.
 
 ##Run asynchronously
+If the proxy is started with the -a flag, it runs asynchronously.
+You can send commands to it the following way:
 
+```
+java -jar raml-tester-proxy.jar <command>
+```
+
+These commands are supported:
+
+- ping: Ping the proxy
+- stop: Stop the proxy
+- reload: Reload the RAML file
+- reports: Get the reports of the RAML violations
+- usage: Get information about usage of RAML elements
+  
 ##Usage as Mock
 Instead of forwarding all requests to another server, the tool can also be used to return mock responses.
 (Which will also be verified against a RAML file.)
