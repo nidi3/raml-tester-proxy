@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramlproxy.*;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,8 +27,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.CollectionUtils.list;
-import static guru.nidi.ramlproxy.CollectionUtils.map;
+import static guru.nidi.ramlproxy.util.CollectionUtils.list;
+import static guru.nidi.ramlproxy.util.CollectionUtils.map;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 
@@ -91,7 +92,7 @@ public class ReporterTest {
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File("target"), format);
-        try (final RamlProxy proxy = RamlProxy.create(reporter, new OptionContainer(sender.getPort(),
+        try (final RamlProxy proxy = RamlProxy.create(reporter, new ServerOptions(sender.getPort(),
                 tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"))) {
             final String res = sender.contentOfGet("data?param=1");
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.report;
 
 import guru.nidi.ramltester.MultiReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;

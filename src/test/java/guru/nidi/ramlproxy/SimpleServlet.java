@@ -30,7 +30,7 @@ import java.io.PrintWriter;
 /**
  *
  */
-class SimpleServlet extends HttpServlet implements TomcatServer.ContextIniter {
+public class SimpleServlet extends HttpServlet implements TomcatServer.ContextIniter {
     @Override
     public void initContext(Context ctx) {
         Tomcat.addServlet(ctx, "app", this);

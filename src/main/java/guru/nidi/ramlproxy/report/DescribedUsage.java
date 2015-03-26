@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.report;
 
 import guru.nidi.ramltester.core.Usage;
 
@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  *
  */
-class DescribedUsage {
+public class DescribedUsage {
     private final Map<String, Set<String>> usage = new HashMap<>();
 
     public DescribedUsage(Usage usage) {

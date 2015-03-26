@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramltester.core.RamlReport;
@@ -29,7 +29,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.CollectionUtils.map;
+import static guru.nidi.ramlproxy.util.CollectionUtils.map;
 
 /**
  *

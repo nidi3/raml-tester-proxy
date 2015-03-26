@@ -15,24 +15,35 @@
  */
 package guru.nidi.ramlproxy;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  *
  */
-class CollectionUtils {
-    public static Map<Object, Object> map(Object... keysValues) {
-        final Map<Object, Object> map = new HashMap<>();
-        for (int i = 0; i < keysValues.length; i += 2) {
-            map.put(keysValues[i], keysValues[i + 1]);
-        }
-        return map;
+public class ClientOptions {
+    private final Command command;
+    private final int port;
+    private final boolean clearReports;
+    private final boolean clearUsage;
+
+    public ClientOptions(Command command, int port, boolean clearReports, boolean clearUsage) {
+        this.command = command;
+        this.port = port;
+        this.clearReports = clearReports;
+        this.clearUsage = clearUsage;
     }
 
-    public static List<Object> list(Object... values) {
-        return Arrays.asList(values);
+    public Command getCommand() {
+        return command;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public boolean isClearReports() {
+        return clearReports;
+    }
+
+    public boolean isClearUsage() {
+        return clearUsage;
     }
 }

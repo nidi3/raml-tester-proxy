@@ -15,8 +15,10 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.report.DescribedUsage;
+import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.core.Usage;
-import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +32,7 @@ import java.util.Map;
 /**
  *
  */
-enum Command {
+public enum Command {
     PING("ping", Type.TEXT) {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
@@ -69,13 +71,14 @@ enum Command {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             final String raw = reader.readLine();
-            try {
-                final OptionContainer options = OptionContainer.fromArgs(raw.split(" "));
-                writer.print(options.equals(testerFilter.getProxy().getOptions()) ? "same" : "different");
-            } catch (ParseException e) {
-                writer.print("illegal options: '" + raw + "'");
-                e.printStackTrace(writer);
-            }
+//            try {
+                //TODO
+//                final ServerOptions options = ServerOptions.fromArgs(raw.split(" "));
+//                writer.print(options.equals(testerFilter.getProxy().getOptions()) ? "same" : "different");
+//            } catch (ParseException e) {
+//                writer.print("illegal options: '" + raw + "'");
+//                e.printStackTrace(writer);
+//            }
         }
     },
     USAGE("usage", Type.JSON) {

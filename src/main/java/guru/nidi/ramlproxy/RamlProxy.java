@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.RamlLoaders;
 import org.eclipse.jetty.server.Server;
@@ -32,21 +33,13 @@ public class RamlProxy implements AutoCloseable {
     private final Server server;
     private final Thread shutdownHook;
     private final ReportSaver saver;
-    private final OptionContainer options;
+    private final ServerOptions options;
 
-    public static void main(String[] args) throws Exception {
-        final OptionContainer options = OptionContainer.fromCli(args);
-        final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
-        final RamlProxy proxy = create(saver, options);
-        proxy.waitForServer();
-    }
-
-    public static RamlProxy create(ReportSaver saver, OptionContainer options) throws Exception {
-        LogConfigurer.init();
+    public static RamlProxy create(ReportSaver saver, ServerOptions options) throws Exception {
         return new RamlProxy(saver, options);
     }
 
-    public RamlProxy(ReportSaver saver, OptionContainer options) throws Exception {
+    public RamlProxy(ReportSaver saver, ServerOptions options) throws Exception {
         this.saver = saver;
         this.options = options;
         server = new Server(options.getPort());
@@ -82,7 +75,7 @@ public class RamlProxy implements AutoCloseable {
         return saver;
     }
 
-    public OptionContainer getOptions() {
+    public ServerOptions getOptions() {
         return options;
     }
 

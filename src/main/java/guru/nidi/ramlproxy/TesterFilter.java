@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;

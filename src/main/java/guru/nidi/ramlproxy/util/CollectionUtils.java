@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.util;
 
-public class Ramls {
-    public static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
-    public static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
-            GITHUB = LOCATION + "github-meta.raml",
-            SIMPLE = LOCATION + "simple.raml",
-            COMMAND = "file://src/main/resources/proxy.raml";
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ *
+ */
+public class CollectionUtils {
+    public static Map<Object, Object> map(Object... keysValues) {
+        final Map<Object, Object> map = new HashMap<>();
+        for (int i = 0; i < keysValues.length; i += 2) {
+            map.put(keysValues[i], keysValues[i + 1]);
+        }
+        return map;
+    }
+
+    public static List<Object> list(Object... values) {
+        return Arrays.asList(values);
+    }
 }

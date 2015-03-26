@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
@@ -34,9 +35,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.CollectionUtils.list;
-import static guru.nidi.ramlproxy.CollectionUtils.map;
 import static guru.nidi.ramlproxy.Command.*;
+import static guru.nidi.ramlproxy.util.CollectionUtils.list;
+import static guru.nidi.ramlproxy.util.CollectionUtils.map;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
@@ -62,9 +63,9 @@ public class CommandTest {
             mockSender.contentOfGet("/@@@proxy/stop");
         } catch (Exception e) {
         }
-        mock = RamlProxy.create(new ReportSaver(), new OptionContainer(
+        mock = RamlProxy.create(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = RamlProxy.create(new ReportSaver(aggregator), new OptionContainer(
+        proxy = RamlProxy.create(new ReportSaver(aggregator), new ServerOptions(
                 proxySender.getPort(), mockSender.url(), Ramls.COMMAND, null));
     }
 

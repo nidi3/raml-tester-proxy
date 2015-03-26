@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.cli;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -29,7 +29,7 @@ import java.io.InputStream;
 /**
  *
  */
-public class LogConfigurer {
+class LogConfigurer {
     private static final String FILENAME = "logback.xml";
     private static final Logger log = LoggerFactory.getLogger(LogConfigurer.class);
 

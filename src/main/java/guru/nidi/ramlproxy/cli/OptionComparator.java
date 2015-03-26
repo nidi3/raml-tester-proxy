@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.cli;
 
-public class Ramls {
-    public static final String MOCK_DIR = "src/test/resources/guru/nidi/ramlproxy";
-    public static final String LOCATION = "file://src/test/resources/guru/nidi/ramlproxy/",
-            GITHUB = LOCATION + "github-meta.raml",
-            SIMPLE = LOCATION + "simple.raml",
-            COMMAND = "file://src/main/resources/proxy.raml";
+import org.apache.commons.cli.Option;
+
+import java.util.Comparator;
+
+/**
+ *
+ */
+class OptionComparator implements Comparator<Option> {
+    private final String options;
+
+    public OptionComparator(String options) {
+        this.options = options;
+    }
+
+    @Override
+    public int compare(Option o1, Option o2) {
+        return options.indexOf(o1.getOpt().charAt(0)) - options.indexOf(o2.getOpt().charAt(0));
+    }
 }
