@@ -108,4 +108,72 @@ public class ServerOptions {
     public boolean isAsyncMode() {
         return asyncMode;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ServerOptions that = (ServerOptions) o;
+
+        if (port != that.port) {
+            return false;
+        }
+        if (ignoreXheaders != that.ignoreXheaders) {
+            return false;
+        }
+        if (asyncMode != that.asyncMode) {
+            return false;
+        }
+        if (target != null ? !target.equals(that.target) : that.target != null) {
+            return false;
+        }
+        if (mockDir != null ? !mockDir.equals(that.mockDir) : that.mockDir != null) {
+            return false;
+        }
+        if (ramlUri != null ? !ramlUri.equals(that.ramlUri) : that.ramlUri != null) {
+            return false;
+        }
+        if (baseUri != null ? !baseUri.equals(that.baseUri) : that.baseUri != null) {
+            return false;
+        }
+        if (saveDir != null ? !saveDir.equals(that.saveDir) : that.saveDir != null) {
+            return false;
+        }
+        return fileFormat == that.fileFormat;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = port;
+        result = 31 * result + (target != null ? target.hashCode() : 0);
+        result = 31 * result + (mockDir != null ? mockDir.hashCode() : 0);
+        result = 31 * result + (ramlUri != null ? ramlUri.hashCode() : 0);
+        result = 31 * result + (baseUri != null ? baseUri.hashCode() : 0);
+        result = 31 * result + (saveDir != null ? saveDir.hashCode() : 0);
+        result = 31 * result + (fileFormat != null ? fileFormat.hashCode() : 0);
+        result = 31 * result + (ignoreXheaders ? 1 : 0);
+        result = 31 * result + (asyncMode ? 1 : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ServerOptions{" +
+                "port=" + port +
+                ", target='" + target + '\'' +
+                ", mockDir=" + mockDir +
+                ", ramlUri='" + ramlUri + '\'' +
+                ", baseUri='" + baseUri + '\'' +
+                ", saveDir=" + saveDir +
+                ", fileFormat=" + fileFormat +
+                ", ignoreXheaders=" + ignoreXheaders +
+                ", asyncMode=" + asyncMode +
+                '}';
+    }
 }

@@ -27,7 +27,7 @@ import java.util.List;
  *
  */
 abstract class OptionsParser<T> {
-    static final int DEFAULT_PORT = 8090;
+    static final int DEFAULT_PORT = 8099;
 
     abstract protected Options createOptions();
 
