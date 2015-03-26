@@ -51,7 +51,7 @@ public class MockTest {
     @Test
     public void simpleOk() throws Exception {
         final HttpResponse res = sender.get("v1/data");
-        Thread.sleep(10);
+        Thread.sleep(20);
         assertEquals("42", content(res));
         assertEquals(202, res.getStatusLine().getStatusCode());
         assertEquals("get!", res.getFirstHeader("X-meta").getValue());
@@ -65,7 +65,7 @@ public class MockTest {
     @Test
     public void multipleFiles() throws Exception {
         final HttpResponse res = sender.get("v1/multi");
-        Thread.sleep(10);
+        Thread.sleep(20);
 
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = content(res);
@@ -81,7 +81,7 @@ public class MockTest {
     @Test
     public void noFile() throws Exception {
         final HttpResponse res = sender.get("v1/notExisting");
-        Thread.sleep(10);
+        Thread.sleep(20);
 
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = content(res);
@@ -97,7 +97,7 @@ public class MockTest {
     @Test
     public void withMethod() throws Exception {
         final HttpResponse res = sender.post("v1/data",null);
-        Thread.sleep(10);
+        Thread.sleep(20);
 
         assertEquals("666", content(res));
         assertEquals(201, res.getStatusLine().getStatusCode());
@@ -112,7 +112,7 @@ public class MockTest {
     @Test
     public void nested() throws Exception {
         final HttpResponse res = sender.post("v1/super/sub",null);
-        Thread.sleep(10);
+        Thread.sleep(20);
 
         assertEquals("163", content(res));
         assertEquals("true", res.getFirstHeader("X-meta").getValue());
