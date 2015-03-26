@@ -52,13 +52,13 @@ public class ServerOptionsParserTest {
     @Test
     public void minimalMock() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "-b", "http://base"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "mock-files", "raml", "base"), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "mock-files", "raml", "http://base"), opt);
     }
 
     @Test
     public void mockDir() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-m", "mocks", "-b", "http://base"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "mocks", "raml", "base"), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "mocks", "raml", "http://base"), opt);
     }
 
     @Test
