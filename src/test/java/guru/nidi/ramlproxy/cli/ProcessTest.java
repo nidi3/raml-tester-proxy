@@ -79,7 +79,9 @@ public class ProcessTest {
 
             assertThat(sender.contentOfGet("@@@proxy/stop"), equalTo("Stopping proxy"));
             assertThat(proxy.readLine(), endsWith("Stopping proxy"));
-            Thread.sleep(300);
+            for (int i = 0; i < 10 && !proxy.hasEnded(); i++) {
+                Thread.sleep(50);
+            }
             assertTrue(proxy.hasEnded());
         }
     }
