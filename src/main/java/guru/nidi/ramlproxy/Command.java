@@ -67,20 +67,6 @@ public enum Command {
             }).start();
         }
     },
-    OPTIONS("options", Type.TEXT) {
-        @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
-            final String raw = reader.readLine();
-//            try {
-                //TODO
-//                final ServerOptions options = ServerOptions.fromArgs(raw.split(" "));
-//                writer.print(options.equals(testerFilter.getProxy().getOptions()) ? "same" : "different");
-//            } catch (ParseException e) {
-//                writer.print("illegal options: '" + raw + "'");
-//                e.printStackTrace(writer);
-//            }
-        }
-    },
     USAGE("usage", Type.JSON) {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {

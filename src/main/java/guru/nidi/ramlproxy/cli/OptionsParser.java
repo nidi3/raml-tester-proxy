@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy.cli;
 
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -76,4 +77,9 @@ abstract class OptionsParser<T> {
         }
         return res.toArray(new String[res.size()]);
     }
+
+    protected int parsePort(CommandLine cmd) {
+        return cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : DEFAULT_PORT;
+    }
+
 }

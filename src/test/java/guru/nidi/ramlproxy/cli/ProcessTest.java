@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.cli;
 
+import guru.nidi.ramlproxy.HttpSender;
+import guru.nidi.ramlproxy.Ramls;
+import guru.nidi.ramlproxy.SimpleServlet;
+import guru.nidi.ramlproxy.TomcatServer;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -30,7 +34,7 @@ public class ProcessTest {
 
     @Test
     public void testGithub() throws IOException, InterruptedException {
-        try (final ProxyProcess proxy = new ProxyProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-r", Ramls.GITHUB)) {
+        try (final TestSubProcess proxy = new TestSubProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-r", Ramls.GITHUB)) {
             assertProxyStarted(proxy);
 
             System.out.println(sender.contentOfGet("meta"));
@@ -44,7 +48,7 @@ public class ProcessTest {
 
     @Test
     public void testGithubIgnoringX() throws IOException, InterruptedException {
-        try (final ProxyProcess proxy = new ProxyProcess("-p" + sender.getPort(), "-thttps://api.github.com", "-r" + Ramls.GITHUB, "-i")) {
+        try (final TestSubProcess proxy = new TestSubProcess("-p" + sender.getPort(), "-thttps://api.github.com", "-r" + Ramls.GITHUB, "-i")) {
             assertProxyStarted(proxy);
 
             System.out.println(sender.contentOfGet("meta"));
@@ -56,7 +60,7 @@ public class ProcessTest {
     @Test
     public void testRamlFromHttp() throws Exception {
         try (final TomcatServer tomcat = new TomcatServer(8083, new SimpleServlet());
-             final ProxyProcess proxy = new ProxyProcess(
+             final TestSubProcess proxy = new TestSubProcess(
                      "-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i",
                      "-r", tomcat.url() + "/resources/github-meta.raml")) {
             assertProxyStarted(proxy);
@@ -69,7 +73,7 @@ public class ProcessTest {
 
     @Test
     public void testStopCommand() throws Exception {
-        try (final ProxyProcess proxy = new ProxyProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i", "-r", Ramls.GITHUB)) {
+        try (final TestSubProcess proxy = new TestSubProcess("-p", "" + sender.getPort(), "-t", "https://api.github.com", "-i", "-r", Ramls.GITHUB)) {
             assertProxyStarted(proxy);
             assertFalse(proxy.hasEnded());
 
@@ -80,7 +84,7 @@ public class ProcessTest {
         }
     }
 
-    private void assertProxyStarted(ProxyProcess proxy) throws InterruptedException {
+    private void assertProxyStarted(TestSubProcess proxy) throws InterruptedException {
         assertThat(proxy.readLine(15), containsString("eporting"));
         assertThat(proxy.readLine(15), endsWith("Proxy started"));
     }

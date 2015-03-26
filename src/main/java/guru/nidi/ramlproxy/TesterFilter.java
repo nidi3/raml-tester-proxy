@@ -35,7 +35,7 @@ import java.io.PrintWriter;
  */
 public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
-    static final String COMMAND_PATH = "/@@@proxy";
+    public static final String COMMAND_PATH = "/@@@proxy";
 
     private final RamlProxy proxy;
     private final ReportSaver saver;

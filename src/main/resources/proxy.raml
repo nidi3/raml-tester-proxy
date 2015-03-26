@@ -37,13 +37,6 @@ traits:
     description: Stop the server.
     is: [headers,text]
 
-/options:
-  post:
-    description: Compare the options sent in the body with the current ones, return 'same' or 'different'.
-    is: [headers,text]
-    body:
-      text/plain:
-
 /reload:
   get:
     description: Reload the RAML file and flush the reports.

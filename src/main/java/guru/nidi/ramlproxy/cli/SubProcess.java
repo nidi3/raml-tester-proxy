@@ -13,50 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.cli;
 
-import org.junit.Assume;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *
  */
-public class ProxyProcess implements AutoCloseable {
-    private static final Pattern VERSION = Pattern.compile("<version>(.+?)</version>");
-
-    private static String version() throws IOException {
-        String pom = "";
-        try (final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream("pom.xml")))) {
-            while (in.ready()) {
-                pom += in.readLine();
-            }
-        }
-        final Matcher matcher = VERSION.matcher(pom);
-        matcher.find();
-        matcher.find();
-        return matcher.group(1);
-    }
+class SubProcess implements AutoCloseable {
 
     private final Process[] proc = new Process[1];
     private final BlockingQueue<String> output = new ArrayBlockingQueue<>(1000);
 
-    public ProxyProcess(String... parameters) throws IOException, InterruptedException {
-        final String jar = "target/raml-tester-proxy-" + version() + ".jar";
-        if (!new File(jar).exists()) {
-            Assume.assumeTrue("jar not found", false);
-            return;
-        }
-        final ArrayList<String> params = new ArrayList<>(Arrays.asList("java", "-jar", jar));
-        params.addAll(Arrays.asList(parameters));
-        proc[0] = new ProcessBuilder(params).start();
+    public SubProcess(String jarFile, List<String> parameters) throws IOException, InterruptedException {
+        final ArrayList<String> params = new ArrayList<>(Arrays.asList("java", "-jar", jarFile));
+        params.addAll(parameters);
+        proc[0] = new ProcessBuilder(params).redirectErrorStream(true).start();
 
         final Thread reader = new Thread(new Runnable() {
             @Override
@@ -68,7 +48,7 @@ public class ProxyProcess implements AutoCloseable {
                         if (in.ready() && (line = in.readLine()) != null) {
                             output.add(line);
                         } else {
-                            Thread.sleep(100);
+                            Thread.sleep(50);
                         }
                     } catch (Exception e) {
                     }

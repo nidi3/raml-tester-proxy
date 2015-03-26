@@ -17,7 +17,12 @@ package guru.nidi.ramlproxy.cli;
 
 import guru.nidi.ramlproxy.ClientOptions;
 import guru.nidi.ramlproxy.Command;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import static org.apache.commons.cli.OptionBuilder.withDescription;
 
 /**
  *
@@ -26,9 +31,16 @@ class ClientOptionsParser extends OptionsParser<ClientOptions> {
 
     @Override
     protected ClientOptions parse(String[] args) throws ParseException {
-        CommandLineParser parser = new BasicParser();
-        CommandLine cmd = parser.parse(createOptions(), expandArgs(args));
-        final int port = cmd.hasOption('p') ? Integer.parseInt(cmd.getOptionValue('p')) : DEFAULT_PORT;
+        final CommandLine cmd = new BasicParser().parse(createOptions(), expandArgs(args));
+
+        final int port = parsePort(cmd);
+        final Command command = parseCommand(cmd);
+        final boolean clearReports = cmd.hasOption('r');
+        final boolean clearUsage = cmd.hasOption('u');
+        return new ClientOptions(command, port, clearReports, clearUsage);
+    }
+
+    private Command parseCommand(CommandLine cmd) throws ParseException {
         if (cmd.getArgs().length != 1) {
             throw new ParseException("No or multiple commands found: " + cmd.getArgList());
         }
@@ -37,14 +49,13 @@ class ClientOptionsParser extends OptionsParser<ClientOptions> {
         if (command == null) {
             throw new ParseException("Unknown command '" + commandStr + "'");
         }
-        final boolean clearReports = cmd.hasOption('r');
-        final boolean clearUsage = cmd.hasOption('u');
-        return new ClientOptions(command, port, clearReports, clearUsage);
+        return command;
     }
 
     @Override
     protected String helpHeader() {
         return "" +
+                "ping         Ping the proxy\n" +
                 "stop         Stop the proxy\n" +
                 "reload       Reload the RAML file\n" +
                 "reports      Get the reports of the RAML violations\n" +
@@ -59,11 +70,10 @@ class ClientOptionsParser extends OptionsParser<ClientOptions> {
     @SuppressWarnings("static-access")
     @Override
     protected Options createOptions() {
-        final Options options = new Options();
-        options.addOption(OptionBuilder.withDescription("The port of the proxy\nDefault: "+DEFAULT_PORT).isRequired(false).withArgName("port").hasArg(true).create('p'));
-        options.addOption(OptionBuilder.withDescription("Clear the reports").isRequired(false).create('r'));
-        options.addOption(OptionBuilder.withDescription("Clear the usage").isRequired(false).create('u'));
-        return options;
+        return new Options()
+                .addOption(withDescription("The port of the proxy\nDefault: " + DEFAULT_PORT).isRequired(false).withArgName("port").hasArg(true).create('p'))
+                .addOption(withDescription("Clear the reports").isRequired(false).create('r'))
+                .addOption(withDescription("Clear the usage").isRequired(false).create('u'));
     }
 
 }

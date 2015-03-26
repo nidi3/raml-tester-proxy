@@ -24,22 +24,24 @@ import javax.servlet.http.HttpServletResponse;
 /**
  *
  */
-enum CommandDecorators {
+public enum CommandDecorators {
     IGNORE_COMMANDS("X-Ignore-Commands", true) {
         @Override
-        public void set(Object req, HttpServletResponse res) {
+        public String set(Object req, HttpServletResponse res) {
             ((HttpRequestBase) req).addHeader(getName(), "true");
+            return super.set(req, res);
         }
     },
     CLEAR_REPORTS("clear-reports", false),
     CLEAR_USAGE("clear-usage", false),
     ALLOW_ORIGIN("Access-Control-Allow-Origin", true) {
         @Override
-        public void set(Object req, HttpServletResponse res) {
+        public String set(Object req, HttpServletResponse res) {
             final String origin = ((HttpServletRequest) req).getHeader("Origin");
             if (origin != null) {
                 res.setHeader(getName(), origin);
             }
+            return origin;
         }
     };
 
@@ -61,8 +63,8 @@ enum CommandDecorators {
         return value != null && !value.equalsIgnoreCase("false");
     }
 
-    public void set(Object req, HttpServletResponse res) {
-        throw new UnsupportedOperationException();
+    public String set(Object req, HttpServletResponse res) {
+        return getName() + "=true";
     }
 
     public void removeFrom(Request proxyRequest) {

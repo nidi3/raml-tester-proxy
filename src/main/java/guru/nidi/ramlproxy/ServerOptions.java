@@ -31,16 +31,17 @@ public class ServerOptions {
     private final File saveDir;
     private final ReportFormat fileFormat;
     private final boolean ignoreXheaders;
+    private final boolean asyncMode;
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false);
     }
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false);
     }
 
-    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
+    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode) {
         this.port = port;
         this.target = target;
         this.mockDir = mockDir;
@@ -49,6 +50,7 @@ public class ServerOptions {
         this.saveDir = saveDir;
         this.fileFormat = fileFormat != null ? fileFormat : ReportFormat.TEXT;
         this.ignoreXheaders = ignoreXheaders;
+        this.asyncMode = asyncMode;
     }
 
     private static String target(String targetOrMockDir) {
@@ -103,70 +105,7 @@ public class ServerOptions {
         return ignoreXheaders;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ServerOptions that = (ServerOptions) o;
-
-        if (ignoreXheaders != that.ignoreXheaders) {
-            return false;
-        }
-        if (port != that.port) {
-            return false;
-        }
-        if (baseUri != null ? !baseUri.equals(that.baseUri) : that.baseUri != null) {
-            return false;
-        }
-        if (fileFormat != that.fileFormat) {
-            return false;
-        }
-        if (mockDir != null ? !mockDir.equals(that.mockDir) : that.mockDir != null) {
-            return false;
-        }
-        if (!ramlUri.equals(that.ramlUri)) {
-            return false;
-        }
-        if (saveDir != null ? !saveDir.equals(that.saveDir) : that.saveDir != null) {
-            return false;
-        }
-        if (target != null ? !target.equals(that.target) : that.target != null) {
-            return false;
-        }
-
-        return true;
+    public boolean isAsyncMode() {
+        return asyncMode;
     }
-
-    @Override
-    public int hashCode() {
-        int result = port;
-        result = 31 * result + (target != null ? target.hashCode() : 0);
-        result = 31 * result + (mockDir != null ? mockDir.hashCode() : 0);
-        result = 31 * result + ramlUri.hashCode();
-        result = 31 * result + (baseUri != null ? baseUri.hashCode() : 0);
-        result = 31 * result + (saveDir != null ? saveDir.hashCode() : 0);
-        result = 31 * result + fileFormat.hashCode();
-        result = 31 * result + (ignoreXheaders ? 1 : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "OptionContainer{" +
-                "port=" + port +
-                ", target='" + target + '\'' +
-                ", mockDir=" + mockDir +
-                ", ramlUri='" + ramlUri + '\'' +
-                ", baseUri='" + baseUri + '\'' +
-                ", saveDir=" + saveDir +
-                ", fileFormat=" + fileFormat +
-                ", ignoreXheaders=" + ignoreXheaders +
-                '}';
-    }
-
 }

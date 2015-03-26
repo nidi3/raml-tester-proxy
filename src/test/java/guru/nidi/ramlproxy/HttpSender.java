@@ -15,13 +15,13 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.cli.CommandSender;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
@@ -30,14 +30,16 @@ import java.io.IOException;
 /**
  *
  */
-public class HttpSender {
-    private final HttpClient client;
-    private final int port;
+public class HttpSender extends CommandSender {
     private boolean ignoreCommands = false;
 
     public HttpSender(int port) {
-        this.port = port;
-        client = HttpClientBuilder.create().setSSLHostnameVerifier(new HostnameVerifier() {
+        super(port);
+    }
+
+    @Override
+    protected HttpClient createClient() {
+        return HttpClientBuilder.create().setSSLHostnameVerifier(new HostnameVerifier() {
             @Override
             public boolean verify(String s, SSLSession sslSession) {
                 return true;
@@ -49,25 +51,29 @@ public class HttpSender {
         this.ignoreCommands = ignore;
     }
 
-    public String url() {
-        return "http://localhost:" + port;
-    }
-
     public String url(String path) {
-        return path.startsWith("http") ? path : (url() + "/" + path);
+        return path.startsWith("http") ? path : (host() + "/" + path);
     }
 
     public int getPort() {
         return port;
     }
 
-    public String content(HttpResponse response) throws IOException {
-        return EntityUtils.toString(response.getEntity());
-    }
-
     public String contentOfGet(String path) throws IOException {
         final HttpResponse response = get(path);
         return content(response);
+    }
+
+    public HttpResponse get(Command command) throws IOException {
+        return get(commandPath(command));
+    }
+
+    public HttpResponse get(Command command, String query) throws IOException {
+        return get(commandPath(command) + "?" + query);
+    }
+
+    public HttpResponse post(Command command, String data) throws IOException {
+        return post(commandPath(command), data);
     }
 
     public HttpResponse get(String path) throws IOException {
@@ -78,12 +84,12 @@ public class HttpSender {
         return client.execute(get);
     }
 
-    public HttpResponse corsGet(String path,String origin) throws IOException {
+    public HttpResponse corsGet(String path, String origin) throws IOException {
         final HttpGet get = new HttpGet(url(path));
         if (ignoreCommands) {
             CommandDecorators.IGNORE_COMMANDS.set(get, null);
         }
-        get.setHeader("Origin",origin);
+        get.setHeader("Origin", origin);
         return client.execute(get);
     }
 

@@ -26,6 +26,7 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.List;
 
+import static guru.nidi.ramlproxy.cli.CommandSender.content;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
@@ -51,7 +52,7 @@ public class MockTest {
     public void simpleOk() throws Exception {
         final HttpResponse res = sender.get("v1/data");
         Thread.sleep(10);
-        assertEquals("42", sender.content(res));
+        assertEquals("42", content(res));
         assertEquals(202, res.getStatusLine().getStatusCode());
         assertEquals("get!", res.getFirstHeader("X-meta").getValue());
 
@@ -67,7 +68,7 @@ public class MockTest {
         Thread.sleep(10);
 
         assertEquals(404, res.getStatusLine().getStatusCode());
-        final String content = sender.content(res);
+        final String content = content(res);
         assertThat(content, containsString("No or multiple file 'multi' found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
@@ -83,7 +84,7 @@ public class MockTest {
         Thread.sleep(10);
 
         assertEquals(404, res.getStatusLine().getStatusCode());
-        final String content = sender.content(res);
+        final String content = content(res);
         assertThat(content, containsString("No or multiple file 'notExisting' found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
@@ -98,7 +99,7 @@ public class MockTest {
         final HttpResponse res = sender.post("v1/data",null);
         Thread.sleep(10);
 
-        assertEquals("666", sender.content(res));
+        assertEquals("666", content(res));
         assertEquals(201, res.getStatusLine().getStatusCode());
         assertEquals("yes!", res.getFirstHeader("X-meta").getValue());
         assertEquals("5", res.getLastHeader("X-meta").getValue());
@@ -113,7 +114,7 @@ public class MockTest {
         final HttpResponse res = sender.post("v1/super/sub",null);
         Thread.sleep(10);
 
-        assertEquals("163", sender.content(res));
+        assertEquals("163", content(res));
         assertEquals("true", res.getFirstHeader("X-meta").getValue());
 
         final RamlReport report = assertOneReport();

@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static guru.nidi.ramlproxy.cli.CommandSender.content;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -42,7 +43,7 @@ public class CorsTest {
         mock = RamlProxy.create(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
         proxy = RamlProxy.create(new ReportSaver(), new ServerOptions(
-                proxySender.getPort(), mockSender.url(), Ramls.COMMAND, null));
+                proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
     }
 
     @After
@@ -75,14 +76,14 @@ public class CorsTest {
     @Test
     public void corsInCommand() throws Exception {
         final HttpResponse response = proxySender.corsGet("@@@proxy/ping", ORIGIN);
-        assertEquals("Pong", proxySender.content(response));
+        assertEquals("Pong", content(response));
         assertEquals(ORIGIN, response.getFirstHeader("Access-Control-Allow-Origin").getValue());
     }
 
     @Test
     public void noCorsInCommand() throws Exception {
         final HttpResponse response = proxySender.get("@@@proxy/ping");
-        assertEquals("Pong", proxySender.content(response));
+        assertEquals("Pong", content(response));
         assertNull(response.getFirstHeader("Access-Control-Allow-Origin"));
     }
 
