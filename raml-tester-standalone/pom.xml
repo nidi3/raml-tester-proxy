@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>raml-tester-proxy</artifactId>
+        <groupId>guru.nidi.raml</groupId>
+        <version>0.0.4-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>raml-tester-standalone</artifactId>
+    <name>${project.artifactId}</name>
+    <description>This is the proxy bundled with all its dependencies, to be used on the command line.</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <excludeScope>test</excludeScope>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <includeScope>compile</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>guru.nidi.ramlproxy.cli.Main</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>guru.nidi.raml</groupId>
+            <artifactId>raml-tester-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
