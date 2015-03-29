@@ -28,7 +28,9 @@ These commands are supported:
 - reload: Reload the RAML file
 - reports: Get the reports of the RAML violations
 - usage: Get information about usage of RAML elements
-  
+
+See also [the RAML definition](raml-tester-client/src/main/resources/proxy.raml).
+
 ##Usage as Mock
 Instead of forwarding all requests to another server, the tool can also be used to return mock responses.
 (Which will also be verified against a RAML file.)
