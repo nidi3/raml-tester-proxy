@@ -2,6 +2,12 @@ raml-tester-proxy [![Build Status](https://travis-ci.org/nidi3/raml-tester-proxy
 =================
 A standalone proxy/mock that tests if requests/responses are compliant with a given RAML.
 
+To see all options, execute
+
+```
+java -jar raml-tester-standalone.jar
+```
+
 ##Usage as proxy
 Example: If there is a service running at localhost:8080, start the proxy with
 
