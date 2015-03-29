@@ -56,3 +56,9 @@ A GET request will first search for `mock-data/admin/GET-user.json` and then for
 An example file looks like `{ "code": 202, "headers": {"X-meta": "get!"} }`.
 - If no matching file for a request is found, `RESPONSE.json` is searched up the directory structure and used if found.
 `mock-data/RESPONSE.json` would be used whenever no exact matching file is found. The same is true for `META-` files.
+
+##Usage from Javascript
+There is a special support for usage from javascript.
+
+See [raml-tester-js](https://github.com/nidi3/raml-tester-js) for details and
+[raml-tester-uc-js](https://github.com/nidi3/raml-tester-uc-js) for examples.
