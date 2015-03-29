@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static guru.nidi.ramlproxy.Command.*;
-import static guru.nidi.ramlproxy.cli.CommandSender.content;
+import static guru.nidi.ramlproxy.CommandSender.content;
 import static guru.nidi.ramlproxy.util.CollectionUtils.list;
 import static guru.nidi.ramlproxy.util.CollectionUtils.map;
 import static org.hamcrest.CoreMatchers.equalTo;

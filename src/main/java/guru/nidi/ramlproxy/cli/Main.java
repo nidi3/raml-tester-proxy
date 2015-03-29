@@ -89,37 +89,23 @@ public class Main {
     }
 
     private void stopRunningServer(int port) {
-        final CommandSender sender = new CommandSender(port);
         try {
-            sender.send(Command.STOP, null);
+            new CommandSender(port).send(Command.STOP);
         } catch (IOException e) {
             //ignore
         }
     }
 
     private void executeCommand(String[] args) {
-        final ClientOptionsParser cop = new ClientOptionsParser();
-        final ClientOptions options = cop.fromCli(args);
-        final CommandSender sender = new CommandSender(options.getPort());
+        final ClientOptions options = new ClientOptionsParser().fromCli(args);
         try {
-            final String result = sender.send(options.getCommand(), queryString(options));
+            final String result = CommandSender.createAndSend(options);
             System.out.println(result);
         } catch (ConnectException e) {
             System.out.println("Could not connect to proxy, start a new one.");
         } catch (IOException e) {
             System.out.println("Problem executing command: " + e.getMessage());
         }
-    }
-
-    private String queryString(ClientOptions options) {
-        String query = "";
-        if (options.isClearReports()) {
-            query += CommandDecorators.CLEAR_REPORTS.set(null, null);
-        }
-        if (options.isClearUsage()) {
-            query += "&" + CommandDecorators.CLEAR_USAGE.set(null, null);
-        }
-        return query;
     }
 
 }

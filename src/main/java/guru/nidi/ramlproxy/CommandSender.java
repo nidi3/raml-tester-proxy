@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.cli;
+package guru.nidi.ramlproxy;
 
-import guru.nidi.ramlproxy.Command;
-import guru.nidi.ramlproxy.TesterFilter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -38,6 +36,14 @@ public class CommandSender {
         client = createClient();
     }
 
+    public CommandSender(ClientOptions options) {
+        this(options.getPort());
+    }
+
+    public static String createAndSend(ClientOptions options) throws IOException {
+        return new CommandSender(options).send(options);
+    }
+
     protected HttpClient createClient() {
         final RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(1000)
@@ -49,15 +55,31 @@ public class CommandSender {
                 .build();
     }
 
-    public String send(Command command, String query) throws IOException {
-        final HttpResponse response = sendGet(command, query);
-        return content(response);
+    public String send(Command command) throws IOException {
+        return content(executeGet(command, null));
     }
 
-    public HttpResponse sendGet(Command command, String query) throws IOException {
-        final String url = host() + commandPath(command) + (query == null ? "" : "?" + query);
-        final HttpGet get = new HttpGet(url);
-        return client.execute(get);
+    public String send(ClientOptions options) throws IOException {
+        return content(executeGet(options.getCommand(), queryString(options)));
+    }
+
+    private HttpResponse executeGet(Command command, String query) throws IOException {
+        return client.execute(createGet(command, query));
+    }
+
+    protected HttpGet createGet(Command command, String query) {
+        return new HttpGet(host() + commandPath(command) + (query == null ? "" : "?" + query));
+    }
+
+    private String queryString(ClientOptions options) {
+        String query = "";
+        if (options.isClearReports()) {
+            query += CommandDecorators.CLEAR_REPORTS.set(null, null);
+        }
+        if (options.isClearUsage()) {
+            query += "&" + CommandDecorators.CLEAR_USAGE.set(null, null);
+        }
+        return query;
     }
 
     public String host() {

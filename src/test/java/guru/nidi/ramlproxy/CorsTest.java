@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static guru.nidi.ramlproxy.cli.CommandSender.content;
+import static guru.nidi.ramlproxy.CommandSender.content;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 

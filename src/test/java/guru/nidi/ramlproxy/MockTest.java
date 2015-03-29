@@ -26,7 +26,7 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.List;
 
-import static guru.nidi.ramlproxy.cli.CommandSender.content;
+import static guru.nidi.ramlproxy.CommandSender.content;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 

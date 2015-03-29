@@ -15,7 +15,6 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramlproxy.cli.CommandSender;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -70,10 +69,6 @@ public class HttpSender extends CommandSender {
 
     public HttpResponse get(Command command, String query) throws IOException {
         return get(commandPath(command) + "?" + query);
-    }
-
-    public HttpResponse post(Command command, String data) throws IOException {
-        return post(commandPath(command), data);
     }
 
     public HttpResponse get(String path) throws IOException {
