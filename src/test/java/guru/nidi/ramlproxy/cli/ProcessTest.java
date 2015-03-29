@@ -15,10 +15,7 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.HttpSender;
-import guru.nidi.ramlproxy.Ramls;
-import guru.nidi.ramlproxy.SimpleServlet;
-import guru.nidi.ramlproxy.TomcatServer;
+import guru.nidi.ramlproxy.*;
 import org.junit.Test;
 
 import java.io.IOException;

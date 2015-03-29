@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.cli;
+package guru.nidi.ramlproxy;
 
 import org.junit.Assume;
 

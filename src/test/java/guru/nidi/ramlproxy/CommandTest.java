@@ -51,7 +51,7 @@ public class CommandTest {
     private HttpSender mockSender = new HttpSender(8091);
     private HttpSender proxySender = new HttpSender(8090);
     private static SimpleReportAggregator aggregator = new UnclearableReportAggregator();
-    private static RamlProxy mock, proxy;
+    private static RamlProxyServer mock, proxy;
 
     @ClassRule
     public static ExpectedUsage expectedUsage = new ExpectedUsage(aggregator,
@@ -64,9 +64,9 @@ public class CommandTest {
             mockSender.contentOfGet("/@@@proxy/stop");
         } catch (Exception e) {
         }
-        mock = new RamlProxy(new ReportSaver(), new ServerOptions(
+        mock = new RamlProxyServer(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = new RamlProxy(new ReportSaver(aggregator), new ServerOptions(
+        proxy = new RamlProxyServer(new ReportSaver(aggregator), new ServerOptions(
                 proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
     }
 

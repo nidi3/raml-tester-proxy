@@ -15,35 +15,38 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.*;
-import guru.nidi.ramlproxy.report.ReportSaver;
-import guru.nidi.ramlproxy.report.Reporter;
+import guru.nidi.ramlproxy.ClientOptions;
+import guru.nidi.ramlproxy.RamlProxy;
+import guru.nidi.ramlproxy.ServerOptions;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.List;
 
 /**
  *
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        final Main main = new Main();
         if (args.length == 0) {
-            main.showHelp();
+            showHelp();
             System.exit(1);
         }
 
         LogConfigurer.init();
 
         if (args[0].startsWith("-")) {
-            main.startServer(args);
+            final ServerOptions options = new ServerOptionsParser().fromCli(args);
+            if (options.isAsyncMode()) {
+                RamlProxy.startServerAsync(options);
+            } else {
+                RamlProxy.startServerSync(options).waitForServer();
+            }
         } else {
-            main.executeCommand(args);
+            executeCommand(new ClientOptionsParser().fromCli(args));
         }
     }
 
-    private void showHelp() {
+    private static void showHelp() {
         System.out.println("Missing arguments.");
         System.out.println();
         System.out.println("Start a proxy:");
@@ -55,52 +58,9 @@ public class Main {
         new ClientOptionsParser().showHelp();
     }
 
-    private void startServer(String[] args) throws Exception {
-        final ServerOptionsParser sop = new ServerOptionsParser();
-        final ServerOptions options = sop.fromCli(args);
-        if (options.isAsyncMode()) {
-            final String classPath = findJarFile();
-            stopRunningServer(options.getPort());
-            startNewServer(classPath, sop.argsWithoutAsync(args));
-        } else {
-            stopRunningServer(options.getPort());
-            final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
-            final RamlProxy proxy = new RamlProxy(saver, options);
-            proxy.waitForServer();
-        }
-    }
-
-    private String findJarFile() {
-        final String classPath = System.getProperty("java.class.path");
-        if (!classPath.endsWith(".jar")) {
-            System.out.println("Cannot run in asynchronous mode without jar");
-            System.exit(1);
-        }
-        return classPath;
-    }
-
-    private void startNewServer(String jar, List<String> args) throws IOException, InterruptedException {
-        final SubProcess subProcess = new SubProcess(jar, args);
-        String line;
-        do {
-            line = subProcess.readLine();
-            System.out.println(line);
-        } while (!line.endsWith("started"));
-    }
-
-    private void stopRunningServer(int port) {
+    private static void executeCommand(ClientOptions options) {
         try {
-            new CommandSender(port).send(Command.STOP);
-        } catch (IOException e) {
-            //ignore
-        }
-    }
-
-    private void executeCommand(String[] args) {
-        final ClientOptions options = new ClientOptionsParser().fromCli(args);
-        try {
-            final String result = CommandSender.createAndSend(options);
-            System.out.println(result);
+            System.out.println(RamlProxy.executeCommand(options));
         } catch (ConnectException e) {
             System.out.println("Could not connect to proxy, start a new one.");
         } catch (IOException e) {

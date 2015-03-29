@@ -35,13 +35,13 @@ public class CorsTest {
     private static final String ORIGIN = "http://cors/origin";
     private HttpSender mockSender = new HttpSender(8091);
     private HttpSender proxySender = new HttpSender(8090);
-    private static RamlProxy mock, proxy;
+    private static RamlProxyServer mock, proxy;
 
     @Before
     public void init() throws Exception {
-        mock = new RamlProxy(new ReportSaver(), new ServerOptions(
+        mock = new RamlProxyServer(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = new RamlProxy(new ReportSaver(), new ServerOptions(
+        proxy = new RamlProxyServer(new ReportSaver(), new ServerOptions(
                 proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
     }
 

@@ -35,12 +35,12 @@ import static org.junit.Assert.*;
  */
 public class MockTest {
     private HttpSender sender = new HttpSender(8090);
-    private RamlProxy proxy;
+    private RamlProxyServer proxy;
 
     @Before
     public void init() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
-        proxy =new RamlProxy(new ReportSaver(), options);
+        proxy = new RamlProxyServer(new ReportSaver(), options);
     }
 
     @After
@@ -96,7 +96,7 @@ public class MockTest {
 
     @Test
     public void withMethod() throws Exception {
-        final HttpResponse res = sender.post("v1/data",null);
+        final HttpResponse res = sender.post("v1/data", null);
         Thread.sleep(20);
 
         assertEquals("666", content(res));
@@ -111,7 +111,7 @@ public class MockTest {
 
     @Test
     public void nested() throws Exception {
-        final HttpResponse res = sender.post("v1/super/sub",null);
+        final HttpResponse res = sender.post("v1/super/sub", null);
         Thread.sleep(20);
 
         assertEquals("163", content(res));

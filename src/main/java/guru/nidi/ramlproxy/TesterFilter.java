@@ -37,12 +37,12 @@ public class TesterFilter implements Filter {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
     public static final String COMMAND_PATH = "/@@@proxy";
 
-    private final RamlProxy proxy;
+    private final RamlProxyServer proxy;
     private final ReportSaver saver;
 
     private RamlDefinition ramlDefinition;
 
-    public TesterFilter(RamlProxy proxy, ReportSaver saver) {
+    public TesterFilter(RamlProxyServer proxy, ReportSaver saver) {
         this.proxy = proxy;
         this.saver = saver;
         fetchRamlDefinition();
@@ -104,7 +104,7 @@ public class TesterFilter implements Filter {
         ramlDefinition = proxy.fetchRamlDefinition();
     }
 
-    RamlProxy getProxy() {
+    RamlProxyServer getProxy() {
         return proxy;
     }
 

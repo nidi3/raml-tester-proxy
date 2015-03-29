@@ -16,86 +16,102 @@
 package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.report.ReportSaver;
-import guru.nidi.ramltester.RamlDefinition;
-import guru.nidi.ramltester.RamlLoaders;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
+import guru.nidi.ramlproxy.report.Reporter;
+import org.w3c.dom.Document;
 
-import javax.servlet.DispatcherType;
-import java.util.EnumSet;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
  */
-public class RamlProxy implements AutoCloseable {
-    private final Server server;
-    private final Thread shutdownHook;
-    private final ReportSaver saver;
-    private final ServerOptions options;
+public class RamlProxy {
+    private static final RamlProxy INSTANCE = new RamlProxy();
 
-    public RamlProxy(ReportSaver saver, ServerOptions options) throws Exception {
-        this.saver = saver;
-        this.options = options;
-        server = new Server(options.getPort());
-        final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.setContextPath("/");
-        server.setHandler(context);
-        final TesterFilter testerFilter = new TesterFilter(this, saver);
-        final ServletHolder servlet;
-        if (options.isMockMode()) {
-            servlet = new ServletHolder(new MockServlet(options.getMockDir()));
-            context.addFilter(new FilterHolder(testerFilter), "/*", EnumSet.allOf(DispatcherType.class));
-        } else {
-            servlet = new ServletHolder(new ProxyServlet(testerFilter));
-            servlet.setInitParameter("proxyTo", options.getTargetUrl());
-            servlet.setInitParameter("viaHost", "localhost"); //avoid calling InetAddress.getLocalHost()
-        }
-        servlet.setInitOrder(1);
-        context.addServlet(servlet, "/*");
-        server.setStopAtShutdown(true);
-        shutdownHook = shutdownHook(saver);
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
-        server.start();
+    public static RamlProxyServer startServerSync(ServerOptions options) throws Exception {
+        return startServerSync(options, new Reporter(options.getSaveDir(), options.getFileFormat()));
     }
 
-    public RamlDefinition fetchRamlDefinition() {
-        return RamlLoaders.absolutely()
-                .load(options.getRamlUri())
-                .ignoringXheaders(options.isIgnoreXheaders())
-                .assumingBaseUri(options.getBaseOrTargetUri());
+    public static RamlProxyServer startServerSync(ServerOptions options, ReportSaver saver) throws Exception {
+        INSTANCE.stopRunningServer(options.getPort());
+        return new RamlProxyServer(saver, options);
     }
 
-    public ReportSaver getSaver() {
-        return saver;
+    public static SubProcess startServerAsync(ServerOptions options) throws Exception {
+        final String classPath = INSTANCE.findJarFile();
+        INSTANCE.stopRunningServer(options.getPort());
+        return INSTANCE.startNewServer(classPath, options.withoutAsyncMode());
     }
 
-    public void waitForServer() throws Exception {
-        server.join();
+    public static String executeCommand(ClientOptions options) throws IOException {
+        return CommandSender.createAndSend(options);
     }
 
-    @Override
-    public void close() throws Exception {
-        if (!server.isStopped() && !server.isStopping()) {
-            server.stop();
-            shutdownHook.start();
-            shutdownHook.join();
-        }
-    }
-
-    public boolean isStopped() {
-        return server.isStopped();
-    }
-
-    private static Thread shutdownHook(final ReportSaver saver) {
-        final Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                saver.flushUsage();
+    private String findJarFile() {
+        final String classPath = System.getProperty("java.class.path");
+        if (classPath.contains(":")) {
+            //multiple entries -> not started with java -jar -> search in maven repo
+            final File localRepo = findLocalRepo();
+            if (localRepo == null) {
+                throw new RuntimeException("Could not find local maven repo, try RamlProxy.startServerSync() in a new Thread");
             }
-        });
-        thread.setDaemon(true);
-        return thread;
+            final String version = Version.VERSION;
+            final File jar = new File(localRepo, "guru/nidi/raml/raml-tester-proxy/" + version + "/raml-tester-proxy-" + version + ".jar");
+            if (!jar.exists()) {
+                throw new RuntimeException("Jar file '" + jar + "' does not exist");
+            }
+            return jar.getAbsolutePath();
+        }
+        //one entry -> started with jar -> use this jar
+        return classPath;
+    }
+
+    private File findLocalRepo() {
+        String loc = findLocalRepo(System.getProperty("user.home") + "/.m2");
+        if (loc == null || loc.length() == 0) {
+            loc = findLocalRepo(System.getenv("M2_HOME") + "/conf");
+        }
+        return new File(loc);
+    }
+
+    private String findLocalRepo(String settingsLocation) {
+        final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        builderFactory.setNamespaceAware(false);
+        final DocumentBuilder documentBuilder;
+        try {
+            documentBuilder = builderFactory.newDocumentBuilder();
+            final Document settings = documentBuilder.parse(settingsLocation + "/settings.xml");
+
+            final XPathFactory xPathfactory = XPathFactory.newInstance();
+            final XPath xpath = xPathfactory.newXPath();
+            final XPathExpression expr = xpath.compile("/settings/localRepository/text()");
+            return (String) expr.evaluate(settings, XPathConstants.STRING);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private SubProcess startNewServer(String jar, ServerOptions options) throws IOException, InterruptedException {
+        final SubProcess subProcess = new SubProcess(jar, options.asCli());
+        String line;
+        do {
+            line = subProcess.readLine();
+            System.out.println(line);
+        } while (!line.endsWith("started"));
+        return subProcess;
+    }
+
+    private void stopRunningServer(int port) {
+        try {
+            new CommandSender(port).send(Command.STOP);
+        } catch (IOException e) {
+            //ignore
+        }
     }
 }

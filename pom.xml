@@ -48,6 +48,7 @@
                     <archive>
                         <manifest>
                             <mainClass>guru.nidi.ramlproxy.cli.Main</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
                 </configuration>
@@ -74,6 +75,25 @@
                             <includes>
                                 <include>**/*ProcessTest.java</include>
                             </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <replaceregexp file="src/main/java/guru/nidi/ramlproxy/Version.java"
+                                    match='VERSION = "[^"]*"'
+                                    replace='VERSION = "${project.version}"' />
+                            </tasks>
                         </configuration>
                     </execution>
                 </executions>

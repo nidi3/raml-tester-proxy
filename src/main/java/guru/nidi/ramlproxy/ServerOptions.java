@@ -18,6 +18,8 @@ package guru.nidi.ramlproxy;
 import guru.nidi.ramlproxy.report.ReportFormat;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -53,12 +55,30 @@ public class ServerOptions {
         this.asyncMode = asyncMode;
     }
 
+    public ServerOptions withoutAsyncMode() {
+        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false);
+    }
+
     private static String target(String targetOrMockDir) {
         return targetOrMockDir.startsWith("http") ? targetOrMockDir : null;
     }
 
     private static File mockDir(String targetOrMockDir) {
         return targetOrMockDir.startsWith("http") ? null : new File(targetOrMockDir);
+    }
+
+    public List<String> asCli() {
+        final String args = "" +
+                ("-p" + port) +
+                (target != null ? (" -t" + target) : "") +
+                (mockDir != null ? (" -m" + mockDir.getAbsolutePath()) : "") +
+                (" -r" + ramlUri) +
+                (baseUri != null ? (" -b" + baseUri) : "") +
+                (saveDir != null ? (" -s" + saveDir) : "") +
+                (fileFormat != null ? (" -f" + fileFormat) : "") +
+                (ignoreXheaders ? " -i" : "") +
+                (asyncMode ? " -a" : "");
+        return Arrays.asList(args.split(" "));
     }
 
     public int getPort() {

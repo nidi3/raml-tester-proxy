@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.cli;
+package guru.nidi.ramlproxy;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  *
  */
-class SubProcess implements AutoCloseable {
+public class SubProcess implements AutoCloseable {
 
     private final Process[] proc = new Process[1];
     private final BlockingQueue<String> output = new ArrayBlockingQueue<>(1000);

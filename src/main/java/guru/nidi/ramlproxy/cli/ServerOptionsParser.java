@@ -23,8 +23,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.apache.commons.cli.OptionBuilder.withDescription;
 
@@ -114,15 +112,4 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
                 .addOption(withDescription("Ignore X-headers\nDefault: false").isRequired(false).hasArg(false).create('i'))
                 .addOption(withDescription("Asynchronous mode\nDefault: false").isRequired(false).hasArg(false).create('a'));
     }
-
-    public List<String> argsWithoutAsync(String[] args) {
-        final List<String> res = new ArrayList<>();
-        for (String arg : args) {
-            if (!arg.startsWith("-a")) {
-                res.add(arg);
-            }
-        }
-        return res;
-    }
-
 }
