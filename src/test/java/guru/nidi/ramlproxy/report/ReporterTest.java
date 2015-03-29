@@ -92,7 +92,7 @@ public class ReporterTest {
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File("target"), format);
-        try (final RamlProxy proxy = RamlProxy.create(reporter, new ServerOptions(sender.getPort(),
+        try (final RamlProxy proxy = new RamlProxy(reporter, new ServerOptions(sender.getPort(),
                 tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"))) {
             final String res = sender.contentOfGet("data?param=1");
 

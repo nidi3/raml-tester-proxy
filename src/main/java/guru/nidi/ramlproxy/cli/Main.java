@@ -65,7 +65,7 @@ public class Main {
         } else {
             stopRunningServer(options.getPort());
             final ReportSaver saver = new Reporter(options.getSaveDir(), options.getFileFormat());
-            final RamlProxy proxy = RamlProxy.create(saver, options);
+            final RamlProxy proxy = new RamlProxy(saver, options);
             proxy.waitForServer();
         }
     }
@@ -91,7 +91,7 @@ public class Main {
     private void stopRunningServer(int port) {
         final CommandSender sender = new CommandSender(port);
         try {
-            sender.sendGetResponse(Command.STOP, null);
+            sender.send(Command.STOP, null);
         } catch (IOException e) {
             //ignore
         }
@@ -102,7 +102,7 @@ public class Main {
         final ClientOptions options = cop.fromCli(args);
         final CommandSender sender = new CommandSender(options.getPort());
         try {
-            final String result = sender.sendGetResponse(options.getCommand(), queryString(options));
+            final String result = sender.send(options.getCommand(), queryString(options));
             System.out.println(result);
         } catch (ConnectException e) {
             System.out.println("Could not connect to proxy, start a new one.");

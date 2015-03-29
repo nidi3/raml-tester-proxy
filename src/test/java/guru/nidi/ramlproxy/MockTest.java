@@ -40,7 +40,7 @@ public class MockTest {
     @Before
     public void init() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
-        proxy = RamlProxy.create(new ReportSaver(), options);
+        proxy =new RamlProxy(new ReportSaver(), options);
     }
 
     @After

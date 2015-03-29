@@ -49,7 +49,7 @@ public class CommandSender {
                 .build();
     }
 
-    public String sendGetResponse(Command command, String query) throws IOException {
+    public String send(Command command, String query) throws IOException {
         final HttpResponse response = sendGet(command, query);
         return content(response);
     }

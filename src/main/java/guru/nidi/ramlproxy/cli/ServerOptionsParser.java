@@ -97,7 +97,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
 
     @Override
     protected OptionComparator optionComparator() {
-        return new OptionComparator("rptmbsfi");
+        return new OptionComparator("rptmbasfi");
     }
 
     @SuppressWarnings("static-access")

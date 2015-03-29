@@ -35,10 +35,6 @@ public class RamlProxy implements AutoCloseable {
     private final ReportSaver saver;
     private final ServerOptions options;
 
-    public static RamlProxy create(ReportSaver saver, ServerOptions options) throws Exception {
-        return new RamlProxy(saver, options);
-    }
-
     public RamlProxy(ReportSaver saver, ServerOptions options) throws Exception {
         this.saver = saver;
         this.options = options;
@@ -73,10 +69,6 @@ public class RamlProxy implements AutoCloseable {
 
     public ReportSaver getSaver() {
         return saver;
-    }
-
-    public ServerOptions getOptions() {
-        return options;
     }
 
     public void waitForServer() throws Exception {

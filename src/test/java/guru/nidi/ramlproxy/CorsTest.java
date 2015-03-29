@@ -39,9 +39,9 @@ public class CorsTest {
 
     @Before
     public void init() throws Exception {
-        mock = RamlProxy.create(new ReportSaver(), new ServerOptions(
+        mock = new RamlProxy(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = RamlProxy.create(new ReportSaver(), new ServerOptions(
+        proxy = new RamlProxy(new ReportSaver(), new ServerOptions(
                 proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
     }
 

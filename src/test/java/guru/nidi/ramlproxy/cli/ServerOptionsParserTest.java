@@ -37,7 +37,7 @@ public class ServerOptionsParserTest {
     @Test
     @Ignore
     public void cors() throws Exception {
-        try (final RamlProxy proxy = RamlProxy.create(new ReportSaver(),
+        try (final RamlProxy proxy =new RamlProxy(new ReportSaver(),
                 new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"))) {
             proxy.waitForServer();
         }

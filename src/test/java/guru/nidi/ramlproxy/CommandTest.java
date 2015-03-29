@@ -64,9 +64,9 @@ public class CommandTest {
             mockSender.contentOfGet("/@@@proxy/stop");
         } catch (Exception e) {
         }
-        mock = RamlProxy.create(new ReportSaver(), new ServerOptions(
+        mock = new RamlProxy(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = RamlProxy.create(new ReportSaver(aggregator), new ServerOptions(
+        proxy = new RamlProxy(new ReportSaver(aggregator), new ServerOptions(
                 proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
     }
 
