@@ -62,7 +62,7 @@ abstract class OptionsParser<T> {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(80);
         formatter.setOptionComparator(optionComparator());
-        formatter.printHelp("java -jar raml-proxy.jar", helpHeader(), createOptions(), "", true);
+        formatter.printHelp("java -jar raml-tester-standalone.jar", helpHeader(), createOptions(), "", true);
     }
 
     protected String[] expandArgs(String[] args) {

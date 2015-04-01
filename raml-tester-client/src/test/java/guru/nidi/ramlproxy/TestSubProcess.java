@@ -33,7 +33,7 @@ public class TestSubProcess extends SubProcess {
     }
 
     private static String findJar() throws IOException {
-        final String jar = "target/raml-tester-proxy-" + version() + ".jar";
+        final String jar = "target/raml-tester-standalone-" + version() + ".jar";
         if (!new File(jar).exists()) {
             Assume.assumeTrue("jar not found", false);
         }

@@ -62,7 +62,7 @@ public class RamlProxy {
                 throw new RuntimeException("Could not find local maven repo, try RamlProxy.startServerSync() in a new Thread");
             }
             final String version = Version.VERSION;
-            final File jar = new File(localRepo, "guru/nidi/raml/raml-tester-proxy/" + version + "/raml-tester-proxy-" + version + ".jar");
+            final File jar = new File(localRepo, "guru/nidi/raml/raml-tester-standalone/" + version + "/raml-tester-standalone-" + version + ".jar");
             if (!jar.exists()) {
                 throw new RuntimeException("Jar file '" + jar + "' does not exist");
             }
