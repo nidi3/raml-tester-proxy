@@ -105,7 +105,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
                 .addOption(withDescription("The port to listen to\nDefault: " + DEFAULT_PORT).isRequired(false).withArgName("port").hasArg(true).create('p'))
                 .addOption(withDescription("The target URL to forward to").isRequired(false).withArgName("URL").hasArg(true).create('t'))
                 .addOption(withDescription("Directory with mock files\nDefault: mock-files").isRequired(false).withArgName("directory").hasOptionalArg().create('m'))
-                .addOption(withDescription("RAML resource, possible schemas are classpath://, file://, http://, https://").isRequired(true).withArgName("URL").hasArg(true).create('r'))
+                .addOption(withDescription("RAML resource, possible schemas are\nclasspath://, file://,\n[user:pass@]http://, [user:pass@]https://,\n[token@]github://user/project/file, user:pass@apiportal://").isRequired(true).withArgName("URL").hasArg(true).create('r'))
                 .addOption(withDescription("Base URI that should be assumed\nDefault: target URL").isRequired(false).withArgName("URI").hasArg(true).create('b'))
                 .addOption(withDescription("Save directory for failing requests/responses\nDefault: none").isRequired(false).withArgName("directory").hasArg(true).create('s'))
                 .addOption(withDescription("Format to use for report files, either text or json\nDefault: text").isRequired(false).withArgName("format").hasArg(true).create('f'))
