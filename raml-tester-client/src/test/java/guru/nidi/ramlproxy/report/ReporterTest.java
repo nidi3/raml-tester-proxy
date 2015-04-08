@@ -23,12 +23,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.servlet.ServletException;
-import java.io.File;
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.util.CollectionUtils.list;
-import static guru.nidi.ramlproxy.util.CollectionUtils.map;
+import static guru.nidi.ramlproxy.CollectionUtils.list;
+import static guru.nidi.ramlproxy.CollectionUtils.map;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 
@@ -52,46 +52,66 @@ public class ReporterTest {
     @Test
     public void reporterText() throws Exception {
         final Reporter reporter = reporterTest(ReportFormat.TEXT);
-        assertTrue(reporter.usageFile("simple").exists());
+        final File usageFile = reporter.usageFile("simple");
+        assertTrue(usageFile.exists());
+        assertEquals("" +
+                        "Unused resources       : [/other, /super/sub]\n" +
+                        "Unused actions         : [POST /data]\n" +
+                        "Unused form parameters : [a in POST /data (application/x-www-form-urlencoded)]\n" +
+                        "Unused query parameters: [q in GET /data]\n" +
+                        "Unused request headers : [head in GET /data]\n" +
+                        "Unused response headers: [rh in GET /data -> 200]\n" +
+                        "Unused response codes  : [201 in GET /data, 201 in POST /data]\n",
+                read(usageFile));
+    }
+
+    private String read(File f) throws IOException {
+        String res = "";
+        try (final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+            while (in.ready()) {
+                res += in.readLine()+"\n";
+            }
+        }
+        return res;
     }
 
     @Test
     public void reporterJson() throws Exception {
         final Reporter reporter = reporterTest(ReportFormat.JSON);
         final ObjectMapper mapper = new ObjectMapper();
-        assertEquals(map("context", "simple",
-                        "unused", map(
-                                "request headers", list("head in GET /data"),
-                                "form parameters", list("a in POST /data (application/x-www-form-urlencoded)"),
-                                "response headers", list("rh in GET /data -> 200"),
-                                "response codes", list("201 in GET /data", "201 in POST /data"),
-                                "resources", list("/other", "/super/sub"),
-                                "query parameters", list("q in GET /data"),
-                                "actions", list("POST /data"))),
+        assertEquals(map(
+                        "unusedRequestHeaders", list("head in GET /data"),
+                        "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
+                        "unusedResponseHeaders", list("rh in GET /data -> 200"),
+                        "unusedResponseCodes", list("201 in GET /data", "201 in POST /data"),
+                        "unusedResources", list("/other", "/super/sub"),
+                        "unusedQueryParameters", list("q in GET /data"),
+                        "unusedActions", list("POST /data")),
                 mapper.readValue(reporter.usageFile("simple"), Map.class));
 
         final Map actual = mapper.readValue(reporter.violationsFile(1), Map.class);
-        final List<String> resVio = (List<String>) actual.get("response violations");
+        @SuppressWarnings("unchecked")
+        final List<String> resVio = (List<String>) actual.get("responseViolations");
         assertThat(resVio.get(0), startsWith("Body does not match schema for action(GET /data) response(200) mime-type('application/json')\nContent: illegal json\n"));
         assertEquals(map("id", 1,
                         "request", "GET " + sender.url("data?param=1 from 127.0.0.1"),
-                        "request headers", map(
+                        "requestHeaders", map(
                                 "Connection", list("keep-alive"),
-                                "User-Agent", ((Map) actual.get("request headers")).get("User-Agent"),
+                                "User-Agent", ((Map) actual.get("requestHeaders")).get("User-Agent"),
                                 "Host", list("localhost:" + sender.getPort()),
                                 "Accept-Encoding", list("gzip,deflate")),
-                        "request violations", list("Query parameter 'param' on action(GET /data) is not defined"),
+                        "requestViolations", list("Query parameter 'param' on action(GET /data) is not defined"),
                         "response", "illegal json",
-                        "response headers", map(
+                        "responseHeaders", map(
                                 "Server", list("Apache-Coyote/1.1"),
-                                "Date", ((Map) actual.get("response headers")).get("Date"),
+                                "Date", ((Map) actual.get("responseHeaders")).get("Date"),
                                 "Content-Type", list("application/json;charset=ISO-8859-1")),
-                        "response violations", resVio),
+                        "responseViolations", resVio),
                 actual);
     }
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
-        final Reporter reporter = new Reporter(new File("target"), format);
+        final Reporter reporter = new Reporter(new File(Ramls.clientDir("target")), format);
         try (final RamlProxyServer proxy = new RamlProxyServer(reporter, new ServerOptions(sender.getPort(),
                 tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"))) {
             final String res = sender.contentOfGet("data?param=1");

@@ -49,15 +49,19 @@ public class RamlProxy {
         return INSTANCE.startNewServer(classPath, options.withoutAsyncMode());
     }
 
-    public static String executeCommand(ClientOptions options) throws IOException {
-        return CommandSender.createAndSend(options);
+    public static <T> T executeCommand(ClientOptions options) throws IOException {
+        return (T) executeRawCommand(options);
+    }
+
+    public static String executeRawCommand(ClientOptions options) throws IOException {
+        return new CommandSender(options).sendRaw(options);
     }
 
     private String findJarFile() {
         final String classPath = System.getProperty("java.class.path");
         if (classPath.contains(":")) {
             //multiple entries -> not started with java -jar -> search in maven repo
-            final File localRepo = findLocalRepo();
+            final String localRepo = findLocalRepo();
             if (localRepo == null) {
                 throw new RuntimeException("Could not find local maven repo, try RamlProxy.startServerSync() in a new Thread");
             }
@@ -72,12 +76,12 @@ public class RamlProxy {
         return classPath;
     }
 
-    private File findLocalRepo() {
+    private String findLocalRepo() {
         String loc = findLocalRepo(System.getProperty("user.home") + "/.m2");
         if (loc == null || loc.length() == 0) {
             loc = findLocalRepo(System.getenv("M2_HOME") + "/conf");
         }
-        return new File(loc);
+        return loc;
     }
 
     private String findLocalRepo(String settingsLocation) {

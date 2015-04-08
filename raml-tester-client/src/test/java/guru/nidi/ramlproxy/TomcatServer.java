@@ -23,7 +23,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -40,7 +39,6 @@ public class TomcatServer implements AutoCloseable {
         }
     };
 
-    private static Set<Class<?>> inited = new HashSet<>();
     private static Tomcat tomcat;
 
     private final int port;
@@ -53,24 +51,21 @@ public class TomcatServer implements AutoCloseable {
     }
 
     private void start() throws LifecycleException, ServletException {
-        if (!inited.contains(contextIniter)) {
-            inited.add(getClass());
-            SLF4JBridgeHandler.removeHandlersForRootLogger();
-            SLF4JBridgeHandler.install();
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
 
-            tomcat = new Tomcat();
-            tomcat.setPort(port);
-            tomcat.setBaseDir(".");
-            Context ctx = tomcat.addWebapp("", "src/test");
-            ctx.setJarScanner(NO_SCAN);
-            ((Host) ctx.getParent()).setAppBase("");
+        tomcat = new Tomcat();
+        tomcat.setPort(port);
+        tomcat.setBaseDir(".");
+        Context ctx = tomcat.addWebapp("", Ramls.clientDir("src/test"));
+        ctx.setJarScanner(NO_SCAN);
+        ((Host) ctx.getParent()).setAppBase("");
 
-            contextIniter.initContext(ctx);
+        contextIniter.initContext(ctx);
 
-            tomcat.start();
-            Server server = tomcat.getServer();
-            server.start();
-        }
+        tomcat.start();
+        Server server = tomcat.getServer();
+        server.start();
     }
 
     public int getPort() {

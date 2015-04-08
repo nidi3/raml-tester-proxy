@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "definitions": {
+    "stringArray": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {"type": "string"}
+    }
+  },
+  "type": "object",
+  "patternProperties": {
+    ".*": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "request",
+          "requestHeaders",
+          "requestViolations",
+          "response",
+          "responseHeaders",
+          "responseViolations"
+        ],
+        "properties": {
+          "id": {"type": "integer"},
+          "request": {"type": "string"},
+          "requestHeaders": {
+            "type": "object",
+            "patternProperties": {
+              ".*": {"$ref": "#/definitions/stringArray"}
+            }
+          },
+          "requestViolations": {"$ref": "#/definitions/stringArray"},
+          "response": {"type": "string"},
+          "responseHeaders": {
+            "type": "object",
+            "patternProperties": {
+              ".*": {"$ref": "#/definitions/stringArray"}
+            }
+          },
+          "responseViolations": {"$ref": "#/definitions/stringArray"}
+        }
+      }
+    }
+  }
+}

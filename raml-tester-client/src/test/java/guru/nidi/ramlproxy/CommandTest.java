@@ -16,7 +16,7 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import guru.nidi.ramlproxy.report.ReportSaver;
+import guru.nidi.ramlproxy.report.*;
 import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
@@ -35,11 +35,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static guru.nidi.ramlproxy.CollectionUtils.list;
+import static guru.nidi.ramlproxy.CollectionUtils.map;
 import static guru.nidi.ramlproxy.Command.*;
 import static guru.nidi.ramlproxy.CommandSender.content;
-import static guru.nidi.ramlproxy.util.CollectionUtils.list;
-import static guru.nidi.ramlproxy.util.CollectionUtils.map;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
@@ -63,6 +62,7 @@ public class CommandTest {
         try {
             mockSender.contentOfGet("/@@@proxy/stop");
         } catch (Exception e) {
+            //ignore
         }
         mock = new RamlProxyServer(new ReportSaver(), new ServerOptions(
                 mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
@@ -72,62 +72,110 @@ public class CommandTest {
 
     @After
     public void end() throws Exception {
-        mock.close();
-        proxy.close();
-        for (ReportSaver.ReportInfo info : proxy.getSaver().getReports("raml-proxy")) {
-            final RamlReport report = info.getReport();
-            assertTrue(report.getRequestViolations() + "\n" + report.getResponseViolations(), report.isEmpty());
+        try {
+            proxySender.setIgnoreCommands(false);
+            final ViolationDatas violations = proxySender.send(REPORTS);
+            assertEquals(1, violations.size());
+            for (final ViolationData violation : violations.get("raml-proxy")) {
+                assertTrue(violation.getRequestViolations().isEmpty());
+                assertTrue(violation.getResponseViolations().isEmpty());
+            }
+
+            final UsageDatas usages = proxySender.send(USAGE);
+            assertEquals(1, usages.size());
+            assertNotNull(usages.get("raml-proxy"));
+
+            for (ReportSaver.ReportInfo info : proxy.getSaver().getReports("raml-proxy")) {
+                final RamlReport report = info.getReport();
+                assertTrue(report.getRequestViolations() + "\n" + report.getResponseViolations(), report.isEmpty());
+            }
+        } finally {
+            mock.close();
+            proxy.close();
         }
     }
 
     @Test
+    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "unchecked"})
     public void reports() throws Exception {
         mockSender.get("v1/data?q=1");
         Thread.sleep(10);
 
         final HttpResponse res = proxySender.get(REPORTS);
-        final Map<String, List<Map<String, Object>>> actual = mapped(content(res), Map.class);
+        final String content = content(res);
+        final Map<String, List<Map<String, Object>>> resAsMap = mapped(content, Map.class);
         assertEquals(map("simple", list(map(
                         "id", 0,
-                        "request violations", list(),
+                        "requestViolations", list(),
                         "request", "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
-                        "request headers", map(
+                        "requestHeaders", map(
                                 "Connection", list("keep-alive"),
-                                "User-Agent", ((Map) actual.get("simple").get(0).get("request headers")).get("User-Agent"),
+                                "User-Agent", ((Map) resAsMap.get("simple").get(0).get("requestHeaders")).get("User-Agent"),
                                 "Host", list("localhost:" + mockSender.getPort()),
                                 "Accept-Encoding", list("gzip,deflate")),
-                        "response violations", list("Response(202) is not defined on action(GET /data)"),
+                        "responseViolations", list("Response(202) is not defined on action(GET /data)"),
                         "response", "42",
-                        "response headers", map("X-meta", list("get!"))))),
-                actual);
+                        "responseHeaders", map("X-meta", list("get!"))))),
+                resAsMap);
+
+        final ViolationDatas resAsData = mapped(content, ViolationDatas.class);
+        final ViolationDatas datas = new ViolationDatas();
+        datas.put("simple", list(new ViolationData(
+                0L,
+                "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
+                map(
+                        "Connection", list("keep-alive"),
+                        "User-Agent", resAsData.get("simple").get(0).getRequestHeaders().get("User-Agent"),
+                        "Host", list("localhost:" + mockSender.getPort()),
+                        "Accept-Encoding", list("gzip,deflate")),
+                list(),
+                "42",
+                map("X-meta", list("get!")),
+                list("Response(202) is not defined on action(GET /data)"))));
+
+        assertEquals(datas, resAsData);
     }
 
     @Test
     public void stop() throws Exception {
-        proxySender.get(STOP);
+        proxySender.send(STOP);
         Thread.sleep(200);
         assertTrue(mock.isStopped());
     }
 
     @Test
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public void usage() throws Exception {
         mockSender.contentOfGet("v1/data?q=1");
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
         final HttpResponse res = proxySender.get(USAGE);
-        final Map<String, Object> actual = mapped(content(res), Map.class);
+        final String content = content(res);
+        final Map<String, Object> resAsMap = mapped(content, Map.class);
         assertEquals(map("simple", map(
-                        "context", "simple",
-                        "unused", map(
-                                "request headers", list("head in GET /data"),
-                                "form parameters", list("a in POST /data (application/x-www-form-urlencoded)"),
-                                "resources", list("/super/sub"),
-                                "actions", list("POST /data"),
-                                "response codes", list("200 in GET /data", "201 in GET /data", "201 in POST /data"),
-                                "response headers", list("rh in GET /data -> 200")
-                        ))),
-                actual);
+                        "unusedQueryParameters", list(),
+                        "unusedRequestHeaders", list("head in GET /data"),
+                        "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
+                        "unusedResources", list("/super/sub"),
+                        "unusedActions", list("POST /data"),
+                        "unusedResponseCodes", list("200 in GET /data", "201 in GET /data", "201 in POST /data"),
+                        "unusedResponseHeaders", list("rh in GET /data -> 200")
+                )),
+                resAsMap);
+
+        final UsageDatas resAsUsage = mapped(content, UsageDatas.class);
+        assertEquals(1, resAsUsage.size());
+
+        final UsageData simple = resAsUsage.get("simple");
+
+        assertEquals(list("POST /data"), simple.getUnusedActions());
+        assertEquals(list("a in POST /data (application/x-www-form-urlencoded)"), simple.getUnusedFormParameters());
+        assertEquals(list(), simple.getUnusedQueryParameters());
+        assertEquals(list("head in GET /data"), simple.getUnusedRequestHeaders());
+        assertEquals(list("/super/sub"), simple.getUnusedResources());
+        assertEquals(list("200 in GET /data", "201 in GET /data", "201 in POST /data"), simple.getUnusedResponseCodes());
+        assertEquals(list("rh in GET /data -> 200"), simple.getUnusedResponseHeaders());
     }
 
     @Test
@@ -148,7 +196,7 @@ public class CommandTest {
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        proxySender.get(CLEAR_USAGE);
+        proxySender.send(CLEAR_USAGE);
         final HttpResponse res = proxySender.get(USAGE);
         final Map<String, Object> actual = mapped(content(res), Map.class);
         assertTrue(actual.isEmpty());
@@ -160,7 +208,7 @@ public class CommandTest {
         mockSender.contentOfGet("v1/other");
         Thread.sleep(10);
 
-        proxySender.get(CLEAR_REPORTS);
+        proxySender.send(CLEAR_REPORTS);
         final HttpResponse res = proxySender.get(REPORTS);
         final Map<String, Object> actual = mapped(content(res), Map.class);
         assertTrue(actual.isEmpty());
@@ -175,7 +223,7 @@ public class CommandTest {
         final Map<String, List> actual = mapped(content(res), Map.class);
         assertEquals(1, actual.get("simple").size());
 
-        assertThat(content(proxySender.get(RELOAD)), equalTo("RAML reloaded"));
+        proxySender.send(RELOAD);
         final HttpResponse res2 = proxySender.get(REPORTS);
         final Map<String, List> actual2 = mapped(content(res2), Map.class);
         assertEquals(0, actual2.size());
@@ -183,7 +231,7 @@ public class CommandTest {
 
     @Test
     public void ping() throws Exception {
-        assertEquals(content(proxySender.get(PING)), "Pong");
+        proxySender.send(PING);
     }
 
     @SuppressWarnings("unchecked")

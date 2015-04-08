@@ -60,7 +60,7 @@ public class Main {
 
     private static void executeCommand(ClientOptions options) {
         try {
-            System.out.println(RamlProxy.executeCommand(options));
+            System.out.println(RamlProxy.executeRawCommand(options));
         } catch (ConnectException e) {
             System.out.println("Could not connect to proxy, start a new one.");
         } catch (IOException e) {

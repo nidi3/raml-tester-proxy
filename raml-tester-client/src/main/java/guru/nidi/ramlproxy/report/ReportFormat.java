@@ -17,8 +17,8 @@ package guru.nidi.ramlproxy.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.model.RamlMessage;
-import guru.nidi.ramltester.model.Values;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 import org.apache.commons.lang.StringUtils;
@@ -28,8 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-
-import static guru.nidi.ramlproxy.util.CollectionUtils.map;
+import java.util.Set;
 
 /**
  *
@@ -37,24 +36,32 @@ import static guru.nidi.ramlproxy.util.CollectionUtils.map;
 public enum ReportFormat {
     TEXT("log") {
         @Override
-        public String formatUsage(String key, DescribedUsage describedUsage) throws IOException {
-            return describedUsage.toString();
+        public String formatUsage(String key, Usage usage) throws IOException {
+            final StringBuilder s = new StringBuilder();
+            addIfNonempty(s, "Unused resources       ", usage.getUnusedResources());
+            addIfNonempty(s, "Unused actions         ", usage.getUnusedActions());
+            addIfNonempty(s, "Unused form parameters ", usage.getUnusedFormParameters());
+            addIfNonempty(s, "Unused query parameters", usage.getUnusedQueryParameters());
+            addIfNonempty(s, "Unused request headers ", usage.getUnusedRequestHeaders());
+            addIfNonempty(s, "Unused response headers", usage.getUnusedResponseHeaders());
+            addIfNonempty(s, "Unused response codes  ", usage.getUnusedResponseCodes());
+            return s.toString();
         }
 
         @Override
         public String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            return "Request violations: " + report.getRequestViolations() + "\n\n" +
-                    formatRequest(request) + "\n" +
-                    formatHeaders(request.getHeaderValues()) + "\n" +
-                    content(request, request.getCharacterEncoding()) +
-                    "\n\n\nResponse violations: " + report.getResponseViolations() + "\n\n" +
-                    formatHeaders(response.getHeaderValues()) + "\n" +
-                    content(response, response.getCharacterEncoding());
+            final ViolationData data = createViolationData(id, report, request, response);
+            return "Request violations: " + data.getRequestViolations() + "\n\n" +
+                    data.getRequest() + "\n" +
+                    formatHeaders(data.getRequestHeaders()) + "\n" +
+                    "\n\n\nResponse violations: " + data.getResponseViolations() + "\n\n" +
+                    formatHeaders(data.getResponseHeaders()) + "\n" +
+                    data.getResponse();
         }
 
-        private String formatHeaders(Values values) {
+        private String formatHeaders(Map<String, List<Object>> values) {
             String res = "";
-            for (Map.Entry<String, List<Object>> entry : values) {
+            for (Map.Entry<String, List<Object>> entry : values.entrySet()) {
                 for (Object value : entry.getValue()) {
                     res += entry.getKey() + ": " + value + "\n";
                 }
@@ -67,24 +74,14 @@ public enum ReportFormat {
         private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
         @Override
-        public String formatUsage(String key, DescribedUsage describedUsage) throws IOException {
-            return OBJECT_MAPPER.writeValueAsString(map(
-                    "context", key,
-                    "unused", describedUsage.asMap()));
+        public String formatUsage(String key, Usage usage) throws IOException {
+            return OBJECT_MAPPER.writeValueAsString(createUsageData(key, usage));
         }
 
         @Override
         public String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            return OBJECT_MAPPER.writeValueAsString(map(
-                    "id", id,
-                    "request violations", report.getRequestViolations().asList(),
-                    "request", formatRequest(request),
-                    "request headers", request.getHeaderValues().asMap(),
-                    "response violations", report.getResponseViolations().asList(),
-                    "response", content(response, response.getCharacterEncoding()),
-                    "response headers", response.getHeaderValues().asMap()));
+            return OBJECT_MAPPER.writeValueAsString(createViolationData(id, report, request, response));
         }
-
     };
 
     final String fileExtension;
@@ -93,7 +90,7 @@ public enum ReportFormat {
         this.fileExtension = fileExtension;
     }
 
-    public abstract String formatUsage(String key, DescribedUsage describedUsage) throws IOException;
+    public abstract String formatUsage(String key, Usage usage) throws IOException;
 
     public abstract String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
 
@@ -101,7 +98,12 @@ public enum ReportFormat {
         return request.getMethod() + " " + request.getRequestURL() +
                 (request.getQueryString() == null ? "" : ("?" + request.getQueryString())) +
                 " from " + request.getRemoteHost();
+    }
 
+    private static void addIfNonempty(StringBuilder base, String desc, Set<String> s) {
+        if (!s.isEmpty()) {
+            base.append(desc + ": " + s + "\n");
+        }
     }
 
     private static String content(RamlMessage message, String encoding) throws UnsupportedEncodingException {
@@ -109,4 +111,23 @@ public enum ReportFormat {
                 ? "No content"
                 : new String(message.getContent(), StringUtils.defaultIfBlank(encoding, Charset.defaultCharset().name()));
     }
+
+    public static UsageData createUsageData(String key, Usage usage) {
+        return new UsageData(usage.getUnusedActions(), usage.getUnusedResources(),
+                usage.getUnusedRequestHeaders(), usage.getUnusedQueryParameters(),
+                usage.getUnusedFormParameters(), usage.getUnusedResponseHeaders(),
+                usage.getUnusedResponseCodes());
+    }
+
+    public static ViolationData createViolationData(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws UnsupportedEncodingException {
+        return new ViolationData(
+                id,
+                formatRequest(request),
+                request.getHeaderValues().asMap(),
+                report.getRequestViolations().asList(),
+                content(response, response.getCharacterEncoding()),
+                response.getHeaderValues().asMap(),
+                report.getResponseViolations().asList());
+    }
+
 }

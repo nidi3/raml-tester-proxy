@@ -15,9 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
-import guru.nidi.ramlproxy.report.DescribedUsage;
-import guru.nidi.ramlproxy.report.ReportFormat;
-import guru.nidi.ramlproxy.report.ReportSaver;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramlproxy.report.*;
 import guru.nidi.ramltester.core.Usage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +39,12 @@ public enum Command {
             writer.print("Pong");
             log("Pong");
         }
+
+        @Override
+        public String decode(String response) throws IOException {
+            return asserted(response, "Pong");
+        }
+
     },
     RELOAD("reload", Type.TEXT) {
         @Override
@@ -46,6 +52,11 @@ public enum Command {
             testerFilter.fetchRamlDefinition();
             writer.print("RAML reloaded");
             log("RAML reloaded");
+        }
+
+        @Override
+        public String decode(String response) throws IOException {
+            return asserted(response, "RAML reloaded");
         }
     },
     STOP("stop", Type.TEXT) {
@@ -66,50 +77,75 @@ public enum Command {
                 }
             }).start();
         }
+
+        @Override
+        public String decode(String response) throws IOException {
+            return "";
+        }
     },
     USAGE("usage", Type.JSON) {
+        private final ObjectMapper MAPPER = new ObjectMapper();
+
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
-            String res = "";
+            final UsageDatas res = new UsageDatas();
             for (Map.Entry<String, Usage> usage : testerFilter.getSaver().getAggregator().usages()) {
-                final DescribedUsage describedUsage = new DescribedUsage(usage.getValue());
-                res += "\"" + usage.getKey() + "\":" + ReportFormat.JSON.formatUsage(usage.getKey(), describedUsage) + ",";
+                res.put(usage.getKey(), ReportFormat.createUsageData(usage.getKey(), usage.getValue()));
             }
-            writer.print(jsonObject(res));
+            writer.print(MAPPER.writeValueAsString(res));
             log("Usage sent");
+        }
+
+        @Override
+        public UsageDatas decode(String response) throws IOException {
+            return MAPPER.readValue(response, UsageDatas.class);
         }
     },
     REPORTS("reports", Type.JSON) {
+        private final ObjectMapper MAPPER = new ObjectMapper();
+
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
-            String res = "";
+            final ViolationDatas res = new ViolationDatas();
             int id = 0;
             for (Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : testerFilter.getSaver().getReports()) {
-                res += "\"" + infoMap.getKey() + "\":";
-                String list = "";
+                final List<ViolationData> data = new ArrayList<>();
                 for (ReportSaver.ReportInfo info : infoMap.getValue()) {
-                    list += ReportFormat.JSON.formatViolations(id++, info.getReport(), info.getRequest(), info.getResponse()) + ",";
+                    data.add(ReportFormat.createViolationData(id++, info.getReport(), info.getRequest(), info.getResponse()));
                 }
-                res += jsonArray(list) + ",";
+                res.put(infoMap.getKey(), data);
             }
-            writer.print(jsonObject(res));
+            writer.print(MAPPER.writeValueAsString(res));
             log("Reports sent");
+        }
+
+        @Override
+        public ViolationDatas decode(String response) throws IOException {
+            return MAPPER.readValue(response, ViolationDatas.class);
         }
     },
     CLEAR_REPORTS("reports/clear", Type.TEXT) {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             testerFilter.getSaver().flushReports();
-            writer.print("Reports cleared");
             log("Reports cleared");
+        }
+
+        @Override
+        public String decode(String response) throws IOException {
+            return "";
         }
     },
     CLEAR_USAGE("usage/clear", Type.TEXT) {
         @Override
         public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
             testerFilter.getSaver().flushUsage();
-            writer.print("Usage cleared");
             log("Usage cleared");
+        }
+
+        @Override
+        public String decode(String response) throws IOException {
+            return "";
         }
     };
 
@@ -144,20 +180,21 @@ public enum Command {
 
     abstract public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException;
 
+    abstract public Object decode(String response) throws IOException;
+
     public void apply(HttpServletResponse response) {
         response.setContentType(type);
     }
 
-    private static String jsonArray(String s) {
-        return "[" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "]";
-    }
-
-    private static String jsonObject(String s) {
-        return "{" + (s.length() == 0 ? "" : s.substring(0, s.length() - 1)) + "}";
-    }
-
     private static void log(String message) {
         log.info(message);
+    }
+
+    private static String asserted(String content, String expected) throws IOException {
+        if (!content.equals(expected)) {
+            throw new IOException("Unexpected response: '" + content + "'");
+        }
+        return content;
     }
 
 }

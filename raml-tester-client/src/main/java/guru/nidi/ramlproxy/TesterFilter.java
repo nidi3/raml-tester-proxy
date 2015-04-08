@@ -89,11 +89,9 @@ public class TesterFilter implements Filter {
             command.execute(this, reader, writer);
         }
         if (CommandDecorators.CLEAR_REPORTS.isSet(request)) {
-            writer.println();
             Command.CLEAR_REPORTS.execute(this, reader, writer);
         }
         if (CommandDecorators.CLEAR_USAGE.isSet(request)) {
-            writer.println();
             Command.CLEAR_USAGE.execute(this, reader, writer);
         }
         writer.flush();

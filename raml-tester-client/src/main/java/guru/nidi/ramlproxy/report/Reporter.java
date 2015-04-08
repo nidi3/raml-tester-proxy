@@ -74,9 +74,8 @@ public class Reporter extends ReportSaver {
     @Override
     public void flushingUsage(ReportAggregator aggregator) {
         for (Map.Entry<String, Usage> entry : aggregator.usages()) {
-            final DescribedUsage describedUsage = new DescribedUsage(entry.getValue());
-            logUsage(entry.getKey(), describedUsage);
-            fileUsage(entry.getKey(), describedUsage);
+            logUsage(entry.getKey(), entry.getValue());
+            fileUsage(entry.getKey(), entry.getValue());
         }
     }
 
@@ -107,17 +106,17 @@ public class Reporter extends ReportSaver {
         }
     }
 
-    private void logUsage(String key, DescribedUsage describedUsage) {
-        log.error(key + "\n" + describedUsage.toString());
+    private void logUsage(String key, Usage usage) {
+        log.error(key + "\n" + usage.toString());
     }
 
-    private void fileUsage(String key, DescribedUsage describedUsage) {
+    private void fileUsage(String key, Usage usage) {
         if (saveDir == null) {
             return;
         }
         try {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(usageFile(key)), "utf-8")) {
-                out.write(reportFormat.formatUsage(key, describedUsage));
+                out.write(reportFormat.formatUsage(key, usage));
             }
         } catch (IOException e) {
             log.error("Problem writing error file", e);

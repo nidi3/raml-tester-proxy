@@ -72,7 +72,10 @@ public class HttpSender extends CommandSender {
     }
 
     public HttpResponse get(String path) throws IOException {
-        final HttpGet get = new HttpGet(url(path));
+        return executeGet(new HttpGet(url(path)));
+    }
+
+    protected HttpResponse executeGet(HttpGet get) throws IOException {
         if (ignoreCommands) {
             CommandDecorators.IGNORE_COMMANDS.set(get, null);
         }

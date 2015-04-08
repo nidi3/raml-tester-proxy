@@ -16,11 +16,6 @@ traits:
         clear-usage:
           description: If set and not 'false' then clear the current usage.
           type: boolean
-  - json:
-      responses:
-        200:
-          body:
-            application/json:
   - text:
       responses:
         200:
@@ -49,7 +44,12 @@ traits:
       is: [headers,text]
   get:
     description: Return all reports since startup or last reload.
-    is: [headers,json]
+    is: [headers]
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include report.json
 
 /usage:
   /clear:
@@ -58,5 +58,9 @@ traits:
       is: [headers,text]
   get:
     description: Return all usage data since startup or last usage flush.
-    is: [headers,json]
-
+    is: [headers]
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include usage.json

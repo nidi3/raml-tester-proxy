@@ -33,7 +33,7 @@ public class TestSubProcess extends SubProcess {
     }
 
     private static String findJar() throws IOException {
-        final String jar = "target/raml-tester-standalone-" + version() + ".jar";
+        final String jar = "raml-tester-standalone/target/raml-tester-standalone-" + version() + ".jar";
         if (!new File(jar).exists()) {
             Assume.assumeTrue("jar not found", false);
         }
@@ -48,8 +48,12 @@ public class TestSubProcess extends SubProcess {
             }
         }
         final Matcher matcher = VERSION.matcher(pom);
-        matcher.find();
-        matcher.find();
+        if (!matcher.find()) {
+            throw new IOException("Expected to find " + VERSION);
+        }
+        if (!matcher.find()) {
+            throw new IOException("Expected to find " + VERSION);
+        }
         return matcher.group(1);
     }
 

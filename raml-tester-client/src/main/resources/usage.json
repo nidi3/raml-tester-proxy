@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "definitions": {
+    "stringArray": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {"type": "string"}
+    }
+  },
+  "type": "object",
+  "patternProperties": {
+    ".*": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unusedActions",
+        "unusedResources",
+        "unusedRequestHeaders",
+        "unusedQueryParameters",
+        "unusedFormParameters",
+        "unusedResponseHeaders",
+        "unusedResponseCodes"
+      ],
+      "properties": {
+        "unusedActions": {"$ref": "#/definitions/stringArray"},
+        "unusedResources": {"$ref": "#/definitions/stringArray"},
+        "unusedRequestHeaders": {"$ref": "#/definitions/stringArray"},
+        "unusedQueryParameters": {"$ref": "#/definitions/stringArray"},
+        "unusedFormParameters": {"$ref": "#/definitions/stringArray"},
+        "unusedResponseHeaders": {"$ref": "#/definitions/stringArray"},
+        "unusedResponseCodes": {"$ref": "#/definitions/stringArray"}
+      }
+    }
+  }
+}

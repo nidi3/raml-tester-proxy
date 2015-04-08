@@ -40,20 +40,18 @@ public class DependencyTest {
                 return packageName.startsWith(BASE);
             }
         });
-        jDepend.addDirectory("target/classes");
+        jDepend.addDirectory(Ramls.clientDir("target/classes"));
 
         DependencyConstraint constraint = new DependencyConstraint();
 
         final JavaPackage
                 base = constraint.addPackage(BASE),
                 report = constraint.addPackage(BASE + ".report"),
-                util = constraint.addPackage(BASE + ".util"),
                 cli = constraint.addPackage(BASE + ".cli");
 
         base.dependsUpon(report);
         cli.dependsUpon(base);
         cli.dependsUpon(report);
-        report.dependsUpon(util);
 
         final Collection analyze = jDepend.analyze();
 
@@ -68,8 +66,9 @@ public class DependencyTest {
                 return packageName.startsWith(BASE);
             }
         });
-        jDepend.addDirectory("target/classes");
+        jDepend.addDirectory(Ramls.clientDir("target/classes"));
 
+        @SuppressWarnings("unchecked")
         final Collection<JavaPackage> packages = jDepend.analyze();
         assertFalse("Cyclic dependencies", jDepend.containsCycles());
 
@@ -78,7 +77,7 @@ public class DependencyTest {
         for (JavaPackage pack : packages) {
             if (pack.getName().startsWith("guru.")) {
                 System.out.printf("%-40s: %-1.2f  %-1.2f  %-1.2f%n", pack.getName(), pack.abstractness(), pack.instability(), pack.distance());
-                if (!pack.getName().endsWith("util")) {
+                if (!pack.getName().endsWith("report")) {
                     assertEquals("Distance exceeded: " + pack.getName(), 0, pack.distance(), .6f);
                 }
             }

@@ -40,10 +40,6 @@ public class CommandSender {
         this(options.getPort());
     }
 
-    public static String createAndSend(ClientOptions options) throws IOException {
-        return new CommandSender(options).send(options);
-    }
-
     protected HttpClient createClient() {
         final RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(1000)
@@ -55,16 +51,24 @@ public class CommandSender {
                 .build();
     }
 
-    public String send(Command command) throws IOException {
-        return content(executeGet(command, null));
+    public <T> T send(Command command) throws IOException {
+        return (T) command.decode(sendRaw(command));
     }
 
-    public String send(ClientOptions options) throws IOException {
-        return content(executeGet(options.getCommand(), queryString(options)));
+    public <T> T send(ClientOptions options) throws IOException {
+        return (T) options.getCommand().decode(sendRaw(options));
     }
 
-    private HttpResponse executeGet(Command command, String query) throws IOException {
-        return client.execute(createGet(command, query));
+    public String sendRaw(Command command) throws IOException {
+        return content(executeGet(createGet(command, null)));
+    }
+
+    public String sendRaw(ClientOptions options) throws IOException {
+        return content(executeGet(createGet(options.getCommand(), queryString(options))));
+    }
+
+    protected HttpResponse executeGet(HttpGet get) throws IOException {
+        return client.execute(get);
     }
 
     protected HttpGet createGet(Command command, String query) {

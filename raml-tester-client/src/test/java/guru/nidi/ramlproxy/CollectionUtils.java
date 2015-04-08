@@ -15,19 +15,24 @@
  */
 package guru.nidi.ramlproxy;
 
-import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class Ramls {
-    public static final String MOCK_DIR = clientDir("src/test/resources/guru/nidi/ramlproxy");
-    public static final String LOCATION = "file://" + clientDir("src/test/resources/guru/nidi/ramlproxy/"),
-            GITHUB = LOCATION + "github-meta.raml",
-            SIMPLE = LOCATION + "simple.raml",
-            COMMAND = "file://" + clientDir("src/main/resources/proxy.raml");
-
-    public static String clientDir(String path) {
-        if (new File("raml-tester-client").exists()) {
-            return "raml-tester-client/" + path;
+/**
+ *
+ */
+public class CollectionUtils {
+    public static Map map(Object... keysValues) {
+        final Map<Object, Object> map = new HashMap<>();
+        for (int i = 0; i < keysValues.length; i += 2) {
+            map.put(keysValues[i], keysValues[i + 1]);
         }
-        return path;
+        return map;
+    }
+
+    public static List list(Object... values) {
+        return Arrays.asList(values);
     }
 }

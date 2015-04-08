@@ -25,8 +25,9 @@ public class ClientOptions {
     private final boolean clearUsage;
 
     public ClientOptions(Command command, int port) {
-        this(command,port,false,false);
+        this(command, port, false, false);
     }
+
     public ClientOptions(Command command, int port, boolean clearReports, boolean clearUsage) {
         this.command = command;
         this.port = port;
