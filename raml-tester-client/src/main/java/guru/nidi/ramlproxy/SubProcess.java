@@ -67,7 +67,7 @@ public class SubProcess implements AutoCloseable {
     }
 
     public String readLine() throws InterruptedException {
-        return readLine(1);
+        return readLine(10);
     }
 
     public String readLine(int maxWaitSec) throws InterruptedException {

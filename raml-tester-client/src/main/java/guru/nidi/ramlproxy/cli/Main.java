@@ -62,7 +62,7 @@ public class Main {
         try {
             System.out.println(RamlProxy.executeRawCommand(options));
         } catch (ConnectException e) {
-            System.out.println("Could not connect to proxy, start a new one.");
+            System.out.println("Could not connect to proxy on port " + options.getPort() + ". Use correct port or start a new proxy.");
         } catch (IOException e) {
             System.out.println("Problem executing command: " + e.getMessage());
         }
