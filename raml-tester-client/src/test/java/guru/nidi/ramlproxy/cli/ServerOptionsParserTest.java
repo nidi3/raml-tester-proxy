@@ -15,12 +15,9 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.RamlProxyServer;
 import guru.nidi.ramlproxy.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportFormat;
-import guru.nidi.ramlproxy.report.ReportSaver;
 import org.apache.commons.cli.ParseException;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -33,15 +30,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServerOptionsParserTest {
     private final ServerOptionsParser parser = new ServerOptionsParser();
-
-    @Test
-    @Ignore
-    public void cors() throws Exception {
-        try (final RamlProxyServer proxy =new RamlProxyServer(new ReportSaver(),
-                new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"))) {
-            proxy.waitForServer();
-        }
-    }
 
     @Test
     public void minimalTarget() throws ParseException {
