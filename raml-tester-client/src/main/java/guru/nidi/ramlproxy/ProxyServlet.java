@@ -50,6 +50,7 @@ public class ProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transpare
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (!testerFilter.handleCommands(request, response)) {
+            testerFilter.delay();
             super.service(new ServletRamlRequest(request), new ServletRamlResponse(response));
         }
     }

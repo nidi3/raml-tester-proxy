@@ -67,6 +67,17 @@ public class RamlProxyServer implements AutoCloseable {
                 .assumingBaseUri(options.getBaseOrTargetUri());
     }
 
+    public void delay() {
+        if (options.getMaxDelay() > 0) {
+            final int delay = options.getMinDelay() + (int) Math.floor(Math.random() * (1 + options.getMaxDelay() - options.getMinDelay()));
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                //ignore
+            }
+        }
+    }
+
     public ReportSaver getSaver() {
         return saver;
     }

@@ -59,6 +59,7 @@ public class TesterFilter implements Filter {
         if (!handleCommands(servletReq, servletRes)) {
             final ServletRamlRequest ramlReq = new ServletRamlRequest(servletReq);
             final ServletRamlResponse ramlRes = new ServletRamlResponse(servletRes);
+            delay();
             chain.doFilter(ramlReq, ramlRes);
             test(ramlReq, ramlRes);
         }
@@ -96,6 +97,10 @@ public class TesterFilter implements Filter {
         }
         writer.flush();
         return true;
+    }
+
+    void delay() {
+        proxy.delay();
     }
 
     void fetchRamlDefinition() {

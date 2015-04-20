@@ -80,6 +80,18 @@ public class ServerOptionsParserTest {
     }
 
     @Test
+    public void exactDelay() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 123), opt);
+    }
+
+    @Test
+    public void minMaxDelay() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123-456"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 456), opt);
+    }
+
+    @Test
     public void noSpaceArgs() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-rraml", "-thttp://target", "-ssave"});
         assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", "raml", null, new File("save"), null, false), opt);
@@ -88,6 +100,21 @@ public class ServerOptionsParserTest {
     @Test(expected = ParseException.class)
     public void neitherTargetNorMock() throws ParseException {
         parser.fromArgs(new String[]{"-r", "raml"});
+    }
+
+    @Test(expected = ParseException.class)
+    public void wrongSimpleDelay() throws ParseException {
+        parser.fromArgs(new String[]{"-d", "raml"});
+    }
+
+    @Test(expected = ParseException.class)
+    public void delayWithStartingMinus() throws ParseException {
+        parser.fromArgs(new String[]{"-d", "-123"});
+    }
+
+    @Test(expected = ParseException.class)
+    public void delayWithEndingMinus() throws ParseException {
+        parser.fromArgs(new String[]{"-d", "123-"});
     }
 
     @Test(expected = ParseException.class)
