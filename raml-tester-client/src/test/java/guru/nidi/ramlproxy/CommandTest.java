@@ -16,6 +16,8 @@
 package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.*;
 import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
@@ -37,8 +39,8 @@ import java.util.Map;
 
 import static guru.nidi.ramlproxy.CollectionUtils.list;
 import static guru.nidi.ramlproxy.CollectionUtils.map;
-import static guru.nidi.ramlproxy.Command.*;
-import static guru.nidi.ramlproxy.CommandSender.content;
+import static guru.nidi.ramlproxy.core.Command.*;
+import static guru.nidi.ramlproxy.core.CommandSender.content;
 import static org.junit.Assert.*;
 
 /**
@@ -64,10 +66,12 @@ public class CommandTest {
         } catch (Exception e) {
             //ignore
         }
-        mock = new RamlProxyServer(new ReportSaver(), new ServerOptions(
-                mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = new RamlProxyServer(new ReportSaver(aggregator), new ServerOptions(
-                proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
+        mock = RamlProxy.startServerSync(
+                new ServerOptions(mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true),
+                new ReportSaver());
+        proxy = RamlProxy.startServerSync(
+                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null),
+                new ReportSaver(aggregator));
     }
 
     @After

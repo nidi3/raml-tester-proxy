@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.core;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

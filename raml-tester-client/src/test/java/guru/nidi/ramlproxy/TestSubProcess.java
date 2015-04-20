@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.SubProcess;
 import org.junit.Assume;
 
 import java.io.*;

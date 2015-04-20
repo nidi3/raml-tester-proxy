@@ -15,8 +15,8 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.ClientOptions;
-import guru.nidi.ramlproxy.Command;
+import guru.nidi.ramlproxy.core.ClientOptions;
+import guru.nidi.ramlproxy.core.Command;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;

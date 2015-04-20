@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramlproxy.report.ReportFormat;
 
@@ -81,7 +81,7 @@ public class ServerOptions {
                 (fileFormat != null ? (" -f" + fileFormat) : "") +
                 (ignoreXheaders ? " -i" : "") +
                 (asyncMode ? " -a" : "") +
-                ("-d" + minDelay + "-" + maxDelay);
+                (" -d" + minDelay + "-" + maxDelay);
         return Arrays.asList(args.split(" "));
     }
 

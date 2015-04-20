@@ -15,6 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.ReportSaver.ReportInfo;
 import guru.nidi.ramltester.core.RamlViolations;
@@ -49,7 +51,7 @@ public class ProxyTest {
     @Test
     public void simpleOk() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxyServer proxy =new RamlProxyServer(new ReportSaver(), options)) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(options, new ReportSaver())) {
             final String res = sender.contentOfGet("data");
 
             assertEquals("42", res);
@@ -65,7 +67,7 @@ public class ProxyTest {
     @Test
     public void simpleNok() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1");
-        try (final RamlProxyServer proxy = new RamlProxyServer(new ReportSaver(), options)) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(options, new ReportSaver())) {
             final String res = sender.contentOfGet("data?param=1");
 
             assertEquals("illegal json", res);
@@ -88,7 +90,7 @@ public class ProxyTest {
     @Test
     public void httpsTest() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null);
-        try (final RamlProxyServer proxy =new RamlProxyServer(new ReportSaver(), options)) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(options, new ReportSaver())) {
             sender.contentOfGet("meta");
 
             final List<ReportInfo> reports = proxy.getSaver().getReports("github-meta");
@@ -103,7 +105,7 @@ public class ProxyTest {
     @Test
     public void testIgnoreX() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), "https://api.github.com", Ramls.GITHUB, null, null, null, true);
-        try (final RamlProxyServer proxy =new RamlProxyServer(new ReportSaver(), options)) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(options, new ReportSaver())) {
             sender.contentOfGet("meta");
 
             final List<ReportInfo> reports = proxy.getSaver().getReports("github-meta");

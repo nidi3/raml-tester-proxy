@@ -15,6 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
@@ -32,14 +34,16 @@ public class LiveDebug {
             }
         };
 
-        try (final RamlProxyServer proxy = new RamlProxyServer(loggingSaver,
-                new ServerOptions(8099, "../youbook-mobile/test/mock-data", "file://../youbook-mobile/test/api/api.raml", "http://mobile.youbook.com/api"))) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(
+                new ServerOptions(8099, "../youbook-mobile/test/mock-data", "file://../youbook-mobile/test/api/api.raml", "http://mobile.youbook.com/api"),
+                loggingSaver)) {
             proxy.waitForServer();
         }
 
 
-//        try (final RamlProxyServer proxy = new RamlProxyServer(loggingSaver,
-//                new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"))) {
+//        try (final RamlProxyServer proxy =RamlProxy.startServerSync(
+//                new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"),
+// loggingSaver)){
 //            proxy.waitForServer();
 //        }
     }

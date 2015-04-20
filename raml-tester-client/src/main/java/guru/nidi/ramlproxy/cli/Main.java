@@ -15,9 +15,9 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.ClientOptions;
 import guru.nidi.ramlproxy.RamlProxy;
-import guru.nidi.ramlproxy.ServerOptions;
+import guru.nidi.ramlproxy.core.ClientOptions;
+import guru.nidi.ramlproxy.core.ServerOptions;
 
 import java.io.IOException;
 import java.net.ConnectException;

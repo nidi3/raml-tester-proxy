@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.RamlDefinition;
@@ -26,14 +26,13 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  *
  */
-public class TesterFilter implements Filter {
+public class TesterFilter implements Filter, CommandContext {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
     public static final String COMMAND_PATH = "/@@@proxy";
 
@@ -45,7 +44,7 @@ public class TesterFilter implements Filter {
     public TesterFilter(RamlProxyServer proxy, ReportSaver saver) {
         this.proxy = proxy;
         this.saver = saver;
-        fetchRamlDefinition();
+        reloadRamlDefinition();
     }
 
     @Override
@@ -80,38 +79,40 @@ public class TesterFilter implements Filter {
         }
         CommandDecorators.ALLOW_ORIGIN.set(request, response);
         final String commandStr = request.getPathInfo().substring(10);
-        final BufferedReader reader = request.getReader();
         final PrintWriter writer = response.getWriter();
         final Command command = Command.byName(commandStr);
         if (command == null) {
             log.info("Ignoring unknown command '" + commandStr + "'");
         } else {
             command.apply(response);
-            command.execute(this, reader, writer);
+            command.execute(this, writer);
         }
         if (CommandDecorators.CLEAR_REPORTS.isSet(request)) {
-            Command.CLEAR_REPORTS.execute(this, reader, writer);
+            Command.CLEAR_REPORTS.execute(this, writer);
         }
         if (CommandDecorators.CLEAR_USAGE.isSet(request)) {
-            Command.CLEAR_USAGE.execute(this, reader, writer);
+            Command.CLEAR_USAGE.execute(this, writer);
         }
         writer.flush();
         return true;
     }
 
-    void delay() {
+    public void delay() {
         proxy.delay();
     }
 
-    void fetchRamlDefinition() {
+    @Override
+    public void reloadRamlDefinition() {
         ramlDefinition = proxy.fetchRamlDefinition();
     }
 
-    RamlProxyServer getProxy() {
-        return proxy;
+    @Override
+    public void stopProxy() throws Exception {
+        proxy.close();
     }
 
-    ReportSaver getSaver() {
+    @Override
+    public ReportSaver getSaver() {
         return saver;
     }
 }

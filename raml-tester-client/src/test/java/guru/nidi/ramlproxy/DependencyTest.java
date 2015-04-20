@@ -47,11 +47,26 @@ public class DependencyTest {
         final JavaPackage
                 base = constraint.addPackage(BASE),
                 report = constraint.addPackage(BASE + ".report"),
-                cli = constraint.addPackage(BASE + ".cli");
+                cli = constraint.addPackage(BASE + ".cli"),
+                jetty = constraint.addPackage(BASE + ".jetty"),
+                undertow = constraint.addPackage(BASE + ".undertow"),
+                core = constraint.addPackage(BASE + ".core");
 
-        base.dependsUpon(report);
+        cli.dependsUpon(core);
         cli.dependsUpon(base);
         cli.dependsUpon(report);
+
+        base.dependsUpon(report);
+        base.dependsUpon(core);
+        base.dependsUpon(jetty);
+
+        core.dependsUpon(report);
+
+        jetty.dependsUpon(core);
+        jetty.dependsUpon(report);
+
+        undertow.dependsUpon(core);
+        undertow.dependsUpon(report);
 
         final Collection analyze = jDepend.analyze();
 
@@ -78,7 +93,7 @@ public class DependencyTest {
             if (pack.getName().startsWith("guru.")) {
                 System.out.printf("%-40s: %-1.2f  %-1.2f  %-1.2f%n", pack.getName(), pack.abstractness(), pack.instability(), pack.distance());
                 if (!pack.getName().endsWith("report")) {
-                    assertEquals("Distance exceeded: " + pack.getName(), 0, pack.distance(), .6f);
+                    assertEquals("Distance exceeded: " + pack.getName(), 0, pack.distance(), .7f);
                 }
             }
         }

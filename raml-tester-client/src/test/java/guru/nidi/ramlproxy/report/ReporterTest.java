@@ -17,6 +17,8 @@ package guru.nidi.ramlproxy.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramlproxy.*;
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -69,7 +71,7 @@ public class ReporterTest {
         String res = "";
         try (final BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
             while (in.ready()) {
-                res += in.readLine()+"\n";
+                res += in.readLine() + "\n";
             }
         }
         return res;
@@ -112,8 +114,8 @@ public class ReporterTest {
 
     private Reporter reporterTest(ReportFormat format) throws Exception {
         final Reporter reporter = new Reporter(new File(Ramls.clientDir("target")), format);
-        try (final RamlProxyServer proxy = new RamlProxyServer(reporter, new ServerOptions(sender.getPort(),
-                tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"))) {
+        try (final RamlProxyServer proxy = RamlProxy.startServerSync(new ServerOptions(sender.getPort(),
+                tomcat.url(), Ramls.SIMPLE, "http://nidi.guru/raml/v1"), reporter)) {
             final String res = sender.contentOfGet("data?param=1");
 
             assertEquals("illegal json", res);

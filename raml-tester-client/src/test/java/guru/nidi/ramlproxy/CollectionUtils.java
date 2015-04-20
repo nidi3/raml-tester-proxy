@@ -24,6 +24,35 @@ import java.util.Map;
  *
  */
 public class CollectionUtils {
+//    public static void main(final String[] args) throws Exception {
+//        long a = System.currentTimeMillis();
+//
+//        Undertow server = Undertow.builder()
+//                .addHttpListener(8080, "localhost")
+//                .setHandler(new ProxyHandler(new SimpleProxyClientProvider(URI.create("uri")), new HttpHandler() {
+//                    @Override
+//                    public void handleRequest(HttpServerExchange exchange) throws Exception {
+//                        exchange.setResponseCode(404);
+//                    }
+//
+//                })).build();
+//                        .setHandler(new HttpHandler() {
+//                            @Override
+//                            public void handleRequest(final HttpServerExchange exchange) throws Exception {
+//                                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
+//                                exchange.getResponseSender().send("Hello World");
+//                            }
+//                        }).build();
+//        server.start();
+//        System.out.println(System.currentTimeMillis() - a);
+//        server.stop();
+//
+//        try (RamlProxyServer proxy = RamlProxy.startServerSync(new ServerOptions(
+//                8099, Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true), new ReportSaver())) {
+//
+//        }
+//    }
+
     public static Map map(Object... keysValues) {
         final Map<Object, Object> map = new HashMap<>();
         for (int i = 0; i < keysValues.length; i += 2) {

@@ -15,6 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.ReportSaver.ReportInfo;
 import guru.nidi.ramltester.core.RamlReport;
@@ -26,7 +28,7 @@ import org.junit.Test;
 import java.util.Iterator;
 import java.util.List;
 
-import static guru.nidi.ramlproxy.CommandSender.content;
+import static guru.nidi.ramlproxy.core.CommandSender.content;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
@@ -40,7 +42,7 @@ public class MockTest {
     @Before
     public void init() throws Exception {
         final ServerOptions options = new ServerOptions(sender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true);
-        proxy = new RamlProxyServer(new ReportSaver(), options);
+        proxy = RamlProxy.startServerSync(options, new ReportSaver());
     }
 
     @After

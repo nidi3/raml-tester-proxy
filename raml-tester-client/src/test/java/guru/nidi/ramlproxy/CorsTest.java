@@ -15,6 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import org.apache.http.HttpResponse;
 import org.junit.After;
@@ -23,7 +25,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static guru.nidi.ramlproxy.CommandSender.content;
+import static guru.nidi.ramlproxy.core.CommandSender.content;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -39,10 +41,12 @@ public class CorsTest {
 
     @Before
     public void init() throws Exception {
-        mock = new RamlProxyServer(new ReportSaver(), new ServerOptions(
-                mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true));
-        proxy = new RamlProxyServer(new ReportSaver(), new ServerOptions(
-                proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null));
+        mock = RamlProxy.startServerSync(
+                new ServerOptions(mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true),
+                new ReportSaver());
+        proxy = RamlProxy.startServerSync(
+                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null),
+                new ReportSaver());
     }
 
     @After

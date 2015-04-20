@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramlproxy.report.*;
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -35,8 +34,8 @@ import java.util.Map;
 public enum Command {
     PING("ping", Type.TEXT) {
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
-            writer.print("Pong");
+        public void execute(CommandContext context, PrintWriter out) {
+            out.print("Pong");
             log("Pong");
         }
 
@@ -48,9 +47,9 @@ public enum Command {
     },
     RELOAD("reload", Type.TEXT) {
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
-            testerFilter.fetchRamlDefinition();
-            writer.print("RAML reloaded");
+        public void execute(CommandContext context, PrintWriter out) {
+            context.reloadRamlDefinition();
+            out.print("RAML reloaded");
             log("RAML reloaded");
         }
 
@@ -61,15 +60,15 @@ public enum Command {
     },
     STOP("stop", Type.TEXT) {
         @Override
-        public void execute(final TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) {
-            writer.print("Stopping proxy");
+        public void execute(final CommandContext context, PrintWriter out) {
+            out.print("Stopping proxy");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         log("Stopping proxy");
                         Thread.sleep(100);
-                        testerFilter.getProxy().close();
+                        context.stopProxy();
                     } catch (Exception e) {
                         log("Problem stopping proxy, killing instead: " + e);
                         System.exit(1);
@@ -87,12 +86,12 @@ public enum Command {
         private final ObjectMapper MAPPER = new ObjectMapper();
 
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
+        public void execute(CommandContext context, PrintWriter out) throws IOException {
             final UsageDatas res = new UsageDatas();
-            for (Map.Entry<String, Usage> usage : testerFilter.getSaver().getAggregator().usages()) {
+            for (Map.Entry<String, Usage> usage : context.getSaver().getAggregator().usages()) {
                 res.put(usage.getKey(), ReportFormat.createUsageData(usage.getKey(), usage.getValue()));
             }
-            writer.print(MAPPER.writeValueAsString(res));
+            out.print(MAPPER.writeValueAsString(res));
             log("Usage sent");
         }
 
@@ -105,17 +104,17 @@ public enum Command {
         private final ObjectMapper MAPPER = new ObjectMapper();
 
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
+        public void execute(CommandContext context, PrintWriter out) throws IOException {
             final ViolationDatas res = new ViolationDatas();
             int id = 0;
-            for (Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : testerFilter.getSaver().getReports()) {
+            for (Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : context.getSaver().getReports()) {
                 final List<ViolationData> data = new ArrayList<>();
                 for (ReportSaver.ReportInfo info : infoMap.getValue()) {
                     data.add(ReportFormat.createViolationData(id++, info.getReport(), info.getRequest(), info.getResponse()));
                 }
                 res.put(infoMap.getKey(), data);
             }
-            writer.print(MAPPER.writeValueAsString(res));
+            out.print(MAPPER.writeValueAsString(res));
             log("Reports sent");
         }
 
@@ -126,8 +125,8 @@ public enum Command {
     },
     CLEAR_REPORTS("reports/clear", Type.TEXT) {
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
-            testerFilter.getSaver().flushReports();
+        public void execute(CommandContext context, PrintWriter out) throws IOException {
+            context.getSaver().flushReports();
             log("Reports cleared");
         }
 
@@ -138,8 +137,8 @@ public enum Command {
     },
     CLEAR_USAGE("usage/clear", Type.TEXT) {
         @Override
-        public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException {
-            testerFilter.getSaver().flushUsage();
+        public void execute(CommandContext context, PrintWriter out) throws IOException {
+            context.getSaver().flushUsage();
             log("Usage cleared");
         }
 
@@ -178,7 +177,7 @@ public enum Command {
         return name;
     }
 
-    abstract public void execute(TesterFilter testerFilter, BufferedReader reader, PrintWriter writer) throws IOException;
+    abstract public void execute(CommandContext context, PrintWriter out) throws IOException;
 
     abstract public Object decode(String response) throws IOException;
 

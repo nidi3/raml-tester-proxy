@@ -15,6 +15,7 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.*;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

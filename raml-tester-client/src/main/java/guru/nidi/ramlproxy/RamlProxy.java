@@ -15,6 +15,8 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.*;
+import guru.nidi.ramlproxy.jetty.JettyRamlProxyServer;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.Reporter;
 import org.w3c.dom.Document;
@@ -40,7 +42,8 @@ public class RamlProxy {
 
     public static RamlProxyServer startServerSync(ServerOptions options, ReportSaver saver) throws Exception {
         INSTANCE.stopRunningServer(options.getPort());
-        return new RamlProxyServer(saver, options);
+//        return new UndertowRamlProxyServer(options, saver);
+        return new JettyRamlProxyServer(options, saver);
     }
 
     public static SubProcess startServerAsync(ServerOptions options) throws Exception {

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.jetty;
 
+import guru.nidi.ramlproxy.core.CommandDecorators;
+import guru.nidi.ramlproxy.core.TesterFilter;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
 import org.eclipse.jetty.client.HttpClient;
@@ -33,11 +35,11 @@ import java.io.IOException;
 /**
  *
  */
-public class ProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transparent {
-    private final static Logger log = LoggerFactory.getLogger(ProxyServlet.class);
+public class JettyProxyServlet extends org.eclipse.jetty.proxy.ProxyServlet.Transparent {
+    private final static Logger log = LoggerFactory.getLogger(JettyProxyServlet.class);
     private final TesterFilter testerFilter;
 
-    public ProxyServlet(TesterFilter testerFilter) {
+    public JettyProxyServlet(TesterFilter testerFilter) {
         this.testerFilter = testerFilter;
     }
 

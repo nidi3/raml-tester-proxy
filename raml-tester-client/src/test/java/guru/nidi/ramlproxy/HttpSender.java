@@ -15,6 +15,9 @@
  */
 package guru.nidi.ramlproxy;
 
+import guru.nidi.ramlproxy.core.Command;
+import guru.nidi.ramlproxy.core.CommandDecorators;
+import guru.nidi.ramlproxy.core.CommandSender;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;

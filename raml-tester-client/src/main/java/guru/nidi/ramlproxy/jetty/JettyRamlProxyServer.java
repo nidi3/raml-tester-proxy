@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.jetty;
 
+import guru.nidi.ramlproxy.core.MockServlet;
+import guru.nidi.ramlproxy.core.RamlProxyServer;
+import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.core.TesterFilter;
 import guru.nidi.ramlproxy.report.ReportSaver;
-import guru.nidi.ramltester.RamlDefinition;
-import guru.nidi.ramltester.RamlLoaders;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -29,15 +31,11 @@ import java.util.EnumSet;
 /**
  *
  */
-public class RamlProxyServer implements AutoCloseable {
+public class JettyRamlProxyServer extends RamlProxyServer {
     private final Server server;
-    private final Thread shutdownHook;
-    private final ReportSaver saver;
-    private final ServerOptions options;
 
-    public RamlProxyServer(ReportSaver saver, ServerOptions options) throws Exception {
-        this.saver = saver;
-        this.options = options;
+    public JettyRamlProxyServer(ServerOptions options, ReportSaver saver) throws Exception {
+        super(options, saver);
         server = new Server(options.getPort());
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -48,65 +46,32 @@ public class RamlProxyServer implements AutoCloseable {
             servlet = new ServletHolder(new MockServlet(options.getMockDir()));
             context.addFilter(new FilterHolder(testerFilter), "/*", EnumSet.allOf(DispatcherType.class));
         } else {
-            servlet = new ServletHolder(new ProxyServlet(testerFilter));
+            servlet = new ServletHolder(new JettyProxyServlet(testerFilter));
             servlet.setInitParameter("proxyTo", options.getTargetUrl());
             servlet.setInitParameter("viaHost", "localhost"); //avoid calling InetAddress.getLocalHost()
         }
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
         server.setStopAtShutdown(true);
-        shutdownHook = shutdownHook(saver);
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
         server.start();
     }
 
-    public RamlDefinition fetchRamlDefinition() {
-        return RamlLoaders.absolutely()
-                .load(options.getRamlUri())
-                .ignoringXheaders(options.isIgnoreXheaders())
-                .assumingBaseUri(options.getBaseOrTargetUri());
-    }
-
-    public void delay() {
-        if (options.getMaxDelay() > 0) {
-            final int delay = options.getMinDelay() + (int) Math.floor(Math.random() * (1 + options.getMaxDelay() - options.getMinDelay()));
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                //ignore
-            }
-        }
-    }
-
-    public ReportSaver getSaver() {
-        return saver;
-    }
-
+    @Override
     public void waitForServer() throws Exception {
         server.join();
     }
 
     @Override
-    public void close() throws Exception {
-        if (!server.isStopped() && !server.isStopping()) {
-            server.stop();
-            shutdownHook.start();
-            shutdownHook.join();
+    protected boolean stop() throws Exception {
+        if (server.isStopped() || server.isStopping()) {
+            return false;
         }
+        server.stop();
+        return true;
     }
 
+    @Override
     public boolean isStopped() {
         return server.isStopped();
-    }
-
-    private static Thread shutdownHook(final ReportSaver saver) {
-        final Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                saver.flushUsage();
-            }
-        });
-        thread.setDaemon(true);
-        return thread;
     }
 }

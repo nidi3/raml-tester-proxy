@@ -10,7 +10,7 @@
     <logger name="org.raml.parser" level="WARN"/>
     <logger name="org.apache.http" level="WARN"/>
     <logger name="org.apache.http" level="WARN"/>
-    <logger name="guru.nidi.ramlproxy.ProxyServlet" level="INFO"/>
+    <logger name="guru.nidi.ramlproxy.jetty.JettyProxyServlet" level="INFO"/>
 
     <root level="DEBUG">
         <appender-ref ref="C"/>

@@ -15,7 +15,7 @@
  */
 package guru.nidi.ramlproxy.cli;
 
-import guru.nidi.ramlproxy.ServerOptions;
+import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportFormat;
 import org.apache.commons.cli.ParseException;
 import org.junit.Test;
