@@ -67,7 +67,7 @@ public enum Command {
                 public void run() {
                     try {
                         log("Stopping proxy");
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                         context.stopProxy();
                     } catch (Exception e) {
                         log("Problem stopping proxy, killing instead: " + e);
