@@ -71,16 +71,14 @@ public enum ReportFormat {
 
     },
     JSON("json") {
-        private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
         @Override
         public String formatUsage(String key, Usage usage) throws IOException {
-            return OBJECT_MAPPER.writeValueAsString(createUsageData(key, usage));
+            return MapperHolder.MAPPER.writeValueAsString(createUsageData(key, usage));
         }
 
         @Override
         public String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException {
-            return OBJECT_MAPPER.writeValueAsString(createViolationData(id, report, request, response));
+            return MapperHolder.MAPPER.writeValueAsString(createViolationData(id, report, request, response));
         }
     };
 
@@ -98,6 +96,10 @@ public enum ReportFormat {
         return request.getMethod() + " " + request.getRequestURL() +
                 (request.getQueryString() == null ? "" : ("?" + request.getQueryString())) +
                 " from " + request.getRemoteHost();
+    }
+
+    private static class MapperHolder {
+        private final static ObjectMapper MAPPER = new ObjectMapper();
     }
 
     private static void addIfNonempty(StringBuilder base, String desc, Set<String> s) {
