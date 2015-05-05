@@ -48,7 +48,7 @@ public class SubProcess implements AutoCloseable {
                         if (in.ready() && (line = in.readLine()) != null) {
                             output.add(line);
                         } else {
-                            Thread.sleep(50);
+                            Thread.sleep(10);
                         }
                     } catch (Exception e) {
                     }
