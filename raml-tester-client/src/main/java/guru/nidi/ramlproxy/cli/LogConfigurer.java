@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy;
+package guru.nidi.ramlproxy.cli;
 
+import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
 
 /**
@@ -31,6 +32,7 @@ class LogConfigurer {
         setLogLevel("org.apache.http", "warn");
         setLogLevel("org.apache.http", "warn");
         setLogLevel("guru.nidi.ramlproxy.jetty.JettyProxyServlet", "info");
+        LoggerFactory.getILoggerFactory();
     }
 
     private static void setLogLevel(String prefix, String level) {
