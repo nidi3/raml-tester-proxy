@@ -49,7 +49,6 @@ public class DependencyTest {
                 report = constraint.addPackage(BASE + ".report"),
                 cli = constraint.addPackage(BASE + ".cli"),
                 jetty = constraint.addPackage(BASE + ".jetty"),
-                undertow = constraint.addPackage(BASE + ".undertow"),
                 core = constraint.addPackage(BASE + ".core");
 
         cli.dependsUpon(core);
@@ -64,9 +63,6 @@ public class DependencyTest {
 
         jetty.dependsUpon(core);
         jetty.dependsUpon(report);
-
-        undertow.dependsUpon(core);
-        undertow.dependsUpon(report);
 
         final Collection analyze = jDepend.analyze();
 
