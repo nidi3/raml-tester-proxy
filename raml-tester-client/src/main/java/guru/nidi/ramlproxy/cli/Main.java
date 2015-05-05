@@ -18,7 +18,6 @@ package guru.nidi.ramlproxy.cli;
 import guru.nidi.ramlproxy.RamlProxy;
 import guru.nidi.ramlproxy.core.ClientOptions;
 import guru.nidi.ramlproxy.core.ServerOptions;
-import guru.nidi.ramlproxy.jetty.JettyServerProvider;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -48,7 +47,7 @@ public class Main {
         if (options.isAsyncMode()) {
             RamlProxy.startServerAsync(options);
         } else {
-            JettyServerProvider.prestartServer(options.getPort());
+            RamlProxy.prestartServer(options.getPort());
             if (!options.isMockMode()) {
                 initSslFactory();
             }

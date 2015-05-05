@@ -17,6 +17,7 @@ package guru.nidi.ramlproxy;
 
 import guru.nidi.ramlproxy.core.*;
 import guru.nidi.ramlproxy.jetty.JettyRamlProxyServer;
+import guru.nidi.ramlproxy.jetty.JettyServerProvider;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.Reporter;
 import org.w3c.dom.Document;
@@ -38,6 +39,10 @@ import java.net.Socket;
  */
 public class RamlProxy {
     private static final RamlProxy INSTANCE = new RamlProxy();
+
+    public static void prestartServer(int port){
+        JettyServerProvider.prestartServer(port);
+    }
 
     public static RamlProxyServer startServerSync(ServerOptions options) throws Exception {
         return startServerSync(options, new Reporter(options.getSaveDir(), options.getFileFormat()));
