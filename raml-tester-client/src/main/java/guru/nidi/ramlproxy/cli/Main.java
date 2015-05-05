@@ -18,6 +18,8 @@ package guru.nidi.ramlproxy.cli;
 import guru.nidi.ramlproxy.RamlProxy;
 import guru.nidi.ramlproxy.core.ClientOptions;
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.jetty.JettyServerProvider;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -32,18 +34,47 @@ public class Main {
             System.exit(1);
         }
 
-        LogConfigurer.init();
-
         if (args[0].startsWith("-")) {
-            final ServerOptions options = new ServerOptionsParser().fromCli(args);
-            if (options.isAsyncMode()) {
-                RamlProxy.startServerAsync(options);
-            } else {
-                RamlProxy.startServerSync(options).waitForServer();
-            }
+            startServer(args);
         } else {
             executeCommand(new ClientOptionsParser().fromCli(args));
         }
+    }
+
+    private static void startServer(String[] args) throws Exception {
+        LogConfigurer.config();
+
+        final ServerOptions options = new ServerOptionsParser().fromCli(args);
+        if (options.isAsyncMode()) {
+            RamlProxy.startServerAsync(options);
+        } else {
+            JettyServerProvider.prestartServer(options.getPort());
+            if (!options.isMockMode()) {
+                initSslFactory();
+            }
+            RamlProxy.startServerSync(options).waitForServer();
+        }
+    }
+
+    private static void initSslFactory() {
+        runAsync(new Runnable() {
+            @Override
+            public void run() {
+                final SslContextFactory factory = new SslContextFactory();
+                try {
+                    factory.start();
+                    factory.newSSLEngine();
+                } catch (Exception e) {
+                    //ignore
+                }
+            }
+        });
+    }
+
+    private static void runAsync(Runnable runnable) {
+        final Thread thread = new Thread(runnable);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static void showHelp() {

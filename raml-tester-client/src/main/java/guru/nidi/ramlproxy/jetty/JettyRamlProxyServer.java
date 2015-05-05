@@ -36,10 +36,8 @@ public class JettyRamlProxyServer extends RamlProxyServer {
 
     public JettyRamlProxyServer(ServerOptions options, ReportSaver saver) throws Exception {
         super(options, saver);
-        server = new Server(options.getPort());
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-        server.setHandler(context);
         final TesterFilter testerFilter = new TesterFilter(this, saver);
         final ServletHolder servlet;
         if (options.isMockMode()) {
@@ -52,7 +50,14 @@ public class JettyRamlProxyServer extends RamlProxyServer {
         }
         servlet.setInitOrder(1);
         context.addServlet(servlet, "/*");
+        server = JettyServerProvider.getServer(options.getPort());
+        server.setHandler(context);
         server.setStopAtShutdown(true);
+        doStart();
+    }
+
+    @Override
+    protected void start() throws Exception {
         server.start();
     }
 
