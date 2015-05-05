@@ -29,6 +29,9 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.net.Socket;
 
 /**
  *
@@ -41,14 +44,12 @@ public class RamlProxy {
     }
 
     public static RamlProxyServer startServerSync(ServerOptions options, ReportSaver saver) throws Exception {
-        INSTANCE.stopRunningServer(options.getPort());
-//        return new UndertowRamlProxyServer(options, saver);
+        INSTANCE.stopServer(options.getPort());
         return new JettyRamlProxyServer(options, saver);
     }
 
     public static SubProcess startServerAsync(ServerOptions options) throws Exception {
         final String classPath = INSTANCE.findJarFile();
-        INSTANCE.stopRunningServer(options.getPort());
         return INSTANCE.startNewServer(classPath, options.withoutAsyncMode());
     }
 
@@ -58,6 +59,16 @@ public class RamlProxy {
 
     public static String executeRawCommand(ClientOptions options) throws IOException {
         return new CommandSender(options).sendRaw(options);
+    }
+
+    private void stopServer(int port) {
+        try (final Socket socket = new Socket("localhost", port)) {
+            final Writer out = new OutputStreamWriter(socket.getOutputStream());
+            out.write("GET /@@@proxy/stop\r\n\r\n");
+            out.flush();
+        } catch (IOException e) {
+            //ignore
+        }
     }
 
     private String findJarFile() {
@@ -112,13 +123,5 @@ public class RamlProxy {
             System.out.println(line);
         } while (!line.endsWith("started"));
         return subProcess;
-    }
-
-    private void stopRunningServer(int port) {
-        try {
-            new CommandSender(port).send(Command.STOP);
-        } catch (IOException e) {
-            //ignore
-        }
     }
 }
