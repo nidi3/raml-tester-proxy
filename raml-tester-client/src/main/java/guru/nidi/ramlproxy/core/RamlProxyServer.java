@@ -92,6 +92,7 @@ public abstract class RamlProxyServer implements AutoCloseable {
     @Override
     public void close() throws Exception {
         if (stop()) {
+            Runtime.getRuntime().removeShutdownHook(shutdownHook);
             shutdownHook.start();
             shutdownHook.join();
         }
