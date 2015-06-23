@@ -34,17 +34,17 @@ public class ServerOptions {
     private final ReportFormat fileFormat;
     private final boolean ignoreXheaders;
     private final boolean asyncMode;
-    private final int minDelay, maxDelay;
+    private final Delay delay;
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, 0, 0);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, Delay.NONE);
     }
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, 0, 0);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, Delay.NONE);
     }
 
-    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode, int minDelay, int maxDelay) {
+    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode, Delay delay) {
         this.port = port;
         this.target = target;
         this.mockDir = mockDir;
@@ -54,12 +54,11 @@ public class ServerOptions {
         this.fileFormat = fileFormat != null ? fileFormat : ReportFormat.TEXT;
         this.ignoreXheaders = ignoreXheaders;
         this.asyncMode = asyncMode;
-        this.minDelay = minDelay;
-        this.maxDelay = maxDelay;
+        this.delay = delay;
     }
 
     public ServerOptions withoutAsyncMode() {
-        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, minDelay, maxDelay);
+        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, delay);
     }
 
     private static String target(String targetOrMockDir) {
@@ -81,7 +80,7 @@ public class ServerOptions {
                 (fileFormat != null ? (" -f" + fileFormat) : "") +
                 (ignoreXheaders ? " -i" : "") +
                 (asyncMode ? " -a" : "") +
-                (" -d" + minDelay + "-" + maxDelay);
+                (" -d" + delay.asCli());
         return Arrays.asList(args.split(" "));
     }
 
@@ -133,12 +132,8 @@ public class ServerOptions {
         return asyncMode;
     }
 
-    public int getMinDelay() {
-        return minDelay;
-    }
-
-    public int getMaxDelay() {
-        return maxDelay;
+    public Delay getDelay() {
+        return delay;
     }
 
     @Override
@@ -176,10 +171,7 @@ public class ServerOptions {
         if (saveDir != null ? !saveDir.equals(that.saveDir) : that.saveDir != null) {
             return false;
         }
-        if (minDelay != that.minDelay) {
-            return false;
-        }
-        if (maxDelay != that.maxDelay) {
+        if (delay != that.delay) {
             return false;
         }
         return fileFormat == that.fileFormat;
@@ -197,8 +189,7 @@ public class ServerOptions {
         result = 31 * result + (fileFormat != null ? fileFormat.hashCode() : 0);
         result = 31 * result + (ignoreXheaders ? 1 : 0);
         result = 31 * result + (asyncMode ? 1 : 0);
-        result = 31 * result + minDelay;
-        result = 31 * result + maxDelay;
+        result = 31 * result + delay.hashCode();
         return result;
     }
 
@@ -214,8 +205,7 @@ public class ServerOptions {
                 ", fileFormat=" + fileFormat +
                 ", ignoreXheaders=" + ignoreXheaders +
                 ", asyncMode=" + asyncMode +
-                ", minDelay=" + minDelay +
-                ", maxDelay=" + maxDelay +
+                ", delay=" + delay +
                 '}';
     }
 }
