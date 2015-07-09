@@ -27,6 +27,16 @@ import guru.nidi.ramltester.servlet.ServletRamlResponse;
  */
 public class LiveDebug {
     public static void main(String... args) throws Exception {
+        startTomcat();
+//        Thread.sleep(1000000);
+        startProxy();
+    }
+
+    private static void startTomcat() throws Exception {
+        new TomcatServer(25001, new SimpleServlet());
+    }
+
+    private static void startProxy() throws Exception {
         final ReportSaver loggingSaver = new ReportSaver() {
             @Override
             protected void addingReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
@@ -35,11 +45,11 @@ public class LiveDebug {
         };
 
         try (final RamlProxyServer proxy = RamlProxy.startServerSync(
-                new ServerOptions(8099, "../youbook-mobile/test/mock-data", "file://../youbook-mobile/test/api/api.raml", "http://mobile.youbook.com/api"),
+                new ServerOptions(8099, "http://localhost:25001", "file://raml-tester-client/src/test/resources/guru/nidi/ramlproxy/test.raml", "http://mobile.youbook.com/api"),
+//                new ServerOptions(8099, "../youbook-mobile/test/mock-data", "file://../youbook-mobile/test/api/api.raml", "http://mobile.youbook.com/api"),
                 loggingSaver)) {
             proxy.waitForServer();
         }
-
 
 //        try (final RamlProxyServer proxy =RamlProxy.startServerSync(
 //                new ServerOptions(8099, "../raml-tester-uc-js/test/data", "file://../raml-tester-uc-js/test/data.raml", "http://raml.nidi.guru"),

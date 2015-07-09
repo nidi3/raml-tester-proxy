@@ -69,8 +69,17 @@ public class TesterFilter implements Filter, CommandContext {
     }
 
     public void test(ServletRamlRequest request, ServletRamlResponse response) {
-        final RamlReport report = ramlDefinition.testAgainst(request, response);
-        saver.addReport(report, request, response);
+        try {
+            final RamlReport report = ramlDefinition.testAgainst(request, response);
+            saver.addReport(report, request, response);
+        } catch (Exception e) {
+            try {
+                saver.addReport(RamlReport.fromException(ramlDefinition.getRaml(), e), request, response);
+            } catch (Exception e2) {
+                System.err.println("Problem checking raml '" + ramlDefinition.getRaml().getTitle() + "'");
+                e.printStackTrace();
+            }
+        }
     }
 
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {
