@@ -19,7 +19,7 @@ import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.ReportSaver.ReportInfo;
-import guru.nidi.ramltester.model.RamlViolations;
+import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
