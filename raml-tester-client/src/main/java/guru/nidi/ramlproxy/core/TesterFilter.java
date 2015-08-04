@@ -116,6 +116,11 @@ public class TesterFilter implements Filter, CommandContext {
     }
 
     @Override
+    public RamlReport validateRaml() {
+        return ramlDefinition.validate();
+    }
+
+    @Override
     public void stopProxy() throws Exception {
         proxy.close();
     }

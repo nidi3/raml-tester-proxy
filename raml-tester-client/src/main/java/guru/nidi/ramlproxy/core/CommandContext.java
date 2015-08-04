@@ -16,12 +16,15 @@
 package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramlproxy.report.ReportSaver;
+import guru.nidi.ramltester.core.RamlReport;
 
 /**
  *
  */
 public interface CommandContext {
     void reloadRamlDefinition();
+
+    RamlReport validateRaml();
 
     void stopProxy() throws Exception;
 

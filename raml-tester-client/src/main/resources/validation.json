@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "definitions": {
+    "stringArray": {
+      "type": "array",
+      "additionalItems": false,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "type": "object",
+  "properties": {
+    "ramlTitle": {
+      "type": "string"
+    },
+    "validationViolations": {
+      "$ref": "#/definitions/stringArray"
+    }
+  }
+}

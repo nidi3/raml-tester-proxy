@@ -37,6 +37,16 @@ traits:
     description: Reload the RAML file and flush the reports.
     is: [headers,text]
 
+/validate:
+  get:
+    description: Return the validation report for the RAML itself.
+    is: [headers]
+    responses:
+      200:
+        body:
+          application/json:
+            schema: !include validation.json
+
 /reports:
   /clear:
     get:

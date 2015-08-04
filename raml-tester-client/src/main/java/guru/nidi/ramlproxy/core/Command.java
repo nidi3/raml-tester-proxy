@@ -17,6 +17,7 @@ package guru.nidi.ramlproxy.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramlproxy.report.*;
+import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +122,20 @@ public enum Command {
         @Override
         public ViolationDatas decode(String response) throws IOException {
             return MAPPER.readValue(response, ViolationDatas.class);
+        }
+    },
+    VALIDATE("validate", Type.JSON) {
+        private final ObjectMapper MAPPER = new ObjectMapper();
+
+        @Override
+        public void execute(CommandContext context, PrintWriter out) throws IOException {
+            final RamlReport report = context.validateRaml();
+            out.print(MAPPER.writeValueAsString(new ValidationData(report.getRaml().getTitle(), report.getValidationViolations().asList())));
+        }
+
+        @Override
+        public ValidationData decode(String response) throws IOException {
+            return MAPPER.readValue(response, ValidationData.class);
         }
     },
     CLEAR_REPORTS("reports/clear", Type.TEXT) {
