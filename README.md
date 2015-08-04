@@ -32,6 +32,7 @@ These commands are supported:
 - ping: Ping the proxy
 - stop: Stop the proxy
 - reload: Reload the RAML file
+- validate: Validate the RAML file
 - reports: Get the reports of the RAML violations
 - usage: Get information about usage of RAML elements
 
