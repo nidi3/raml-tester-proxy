@@ -89,7 +89,7 @@ public enum Command {
         public void execute(CommandContext context, PrintWriter out) throws IOException {
             final UsageDatas res = new UsageDatas();
             for (Map.Entry<String, Usage> usage : context.getSaver().getAggregator().usages()) {
-                res.put(usage.getKey(), ReportFormat.createUsageData(usage.getKey(), usage.getValue()));
+                res.put(usage.getKey(), ReportFormat.createUsageData(usage.getValue()));
             }
             out.print(MAPPER.writeValueAsString(res));
             log("Usage sent");

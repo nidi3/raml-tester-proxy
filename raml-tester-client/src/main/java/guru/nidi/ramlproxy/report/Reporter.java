@@ -116,7 +116,7 @@ public class Reporter extends ReportSaver {
         }
         try {
             try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(usageFile(key)), "utf-8")) {
-                out.write(reportFormat.formatUsage(key, usage));
+                out.write(reportFormat.formatUsage(usage));
             }
         } catch (IOException e) {
             log.error("Problem writing error file", e);

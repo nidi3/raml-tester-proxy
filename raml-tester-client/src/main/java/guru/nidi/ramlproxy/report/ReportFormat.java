@@ -36,7 +36,7 @@ import java.util.Set;
 public enum ReportFormat {
     TEXT("log") {
         @Override
-        public String formatUsage(String key, Usage usage) throws IOException {
+        public String formatUsage(Usage usage) throws IOException {
             final StringBuilder s = new StringBuilder();
             addIfNonempty(s, "Unused resources       ", usage.getUnusedResources());
             addIfNonempty(s, "Unused actions         ", usage.getUnusedActions());
@@ -72,8 +72,8 @@ public enum ReportFormat {
     },
     JSON("json") {
         @Override
-        public String formatUsage(String key, Usage usage) throws IOException {
-            return MapperHolder.MAPPER.writeValueAsString(createUsageData(key, usage));
+        public String formatUsage(Usage usage) throws IOException {
+            return MapperHolder.MAPPER.writeValueAsString(createUsageData(usage));
         }
 
         @Override
@@ -88,7 +88,7 @@ public enum ReportFormat {
         this.fileExtension = fileExtension;
     }
 
-    public abstract String formatUsage(String key, Usage usage) throws IOException;
+    public abstract String formatUsage(Usage usage) throws IOException;
 
     public abstract String formatViolations(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws IOException;
 
@@ -114,7 +114,7 @@ public enum ReportFormat {
                 : new String(message.getContent(), StringUtils.defaultIfBlank(encoding, Charset.defaultCharset().name()));
     }
 
-    public static UsageData createUsageData(String key, Usage usage) {
+    public static UsageData createUsageData(Usage usage) {
         return new UsageData(usage.getUnusedActions(), usage.getUnusedResources(),
                 usage.getUnusedRequestHeaders(), usage.getUnusedQueryParameters(),
                 usage.getUnusedFormParameters(), usage.getUnusedResponseHeaders(),
