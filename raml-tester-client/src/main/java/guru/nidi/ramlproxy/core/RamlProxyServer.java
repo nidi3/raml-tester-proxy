@@ -68,7 +68,7 @@ public abstract class RamlProxyServer implements AutoCloseable {
     }
 
     public RamlDefinition fetchRamlDefinition() {
-        return RamlLoaders.absolutely()
+        return RamlLoaders.fromFile(".")
                 .load(options.getRamlUri())
                 .ignoringXheaders(options.isIgnoreXheaders())
                 .assumingBaseUri(options.getBaseOrTargetUri());

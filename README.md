@@ -12,7 +12,7 @@ java -jar raml-tester-standalone.jar
 Example: If there is a service running at localhost:8080, start the proxy with
 
 ```
-java -jar raml-tester-standalone.jar -t localhost:8080 -r file://<path to raml> -s.
+java -jar raml-tester-standalone.jar -t localhost:8080 -r <raml-file> -s.
 ```
 
 and access the service using localhost:8099.
@@ -44,7 +44,7 @@ Instead of forwarding all requests to another server, the tool can also be used 
 Use the -m option instead of -t to run in mock mode:
 
 ```
-java -jar raml-tester-standalone.jar -m mock-data -r file://<path to raml> -s.
+java -jar raml-tester-standalone.jar -m mock-data -r <raml-file> -s.
 ```
 
 The files in directory `mock-data` will be used as responses.

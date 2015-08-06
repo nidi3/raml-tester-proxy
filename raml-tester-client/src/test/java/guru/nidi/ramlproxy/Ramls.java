@@ -22,7 +22,7 @@ public class Ramls {
     public static final String LOCATION = "file://" + clientDir("src/test/resources/guru/nidi/ramlproxy/"),
             GITHUB = LOCATION + "github-meta.raml",
             SIMPLE = LOCATION + "simple.raml",
-            COMMAND = "file://" + clientDir("src/main/resources/proxy.raml");
+            COMMAND = clientDir("src/main/resources/proxy.raml");
 
     public static String clientDir(String path) {
         if (new File("raml-tester-client").exists()) {
