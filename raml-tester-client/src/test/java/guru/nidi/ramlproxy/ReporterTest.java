@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.report;
+package guru.nidi.ramlproxy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import guru.nidi.ramlproxy.*;
 import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramlproxy.report.Reporter;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,8 +58,8 @@ public class ReporterTest {
         final File usageFile = reporter.usageFile("simple");
         assertTrue(usageFile.exists());
         assertEquals("" +
-                        "Unused resources       : [/other, /super/sub]\n" +
-                        "Unused actions         : [POST /data]\n" +
+                        "Unused resources       : [/unused]\n" +
+                        "Unused actions         : [GET /unused, POST /data]\n" +
                         "Unused form parameters : [a in POST /data (application/x-www-form-urlencoded)]\n" +
                         "Unused query parameters: [q in GET /data]\n" +
                         "Unused request headers : [head in GET /data]\n" +
@@ -86,9 +87,9 @@ public class ReporterTest {
                         "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
                         "unusedResponseHeaders", list("rh in GET /data -> 200"),
                         "unusedResponseCodes", list("201 in GET /data", "201 in POST /data"),
-                        "unusedResources", list("/other", "/super/sub"),
+                        "unusedResources", list("/unused"),
                         "unusedQueryParameters", list("q in GET /data"),
-                        "unusedActions", list("POST /data")),
+                        "unusedActions", list("GET /unused","POST /data")),
                 mapper.readValue(reporter.usageFile("simple"), Map.class));
 
         final Map actual = mapper.readValue(reporter.violationsFile(1), Map.class);

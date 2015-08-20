@@ -161,8 +161,8 @@ public class CommandTest {
                         "unusedQueryParameters", list(),
                         "unusedRequestHeaders", list("head in GET /data"),
                         "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
-                        "unusedResources", list("/super/sub"),
-                        "unusedActions", list("POST /data"),
+                        "unusedResources", list("/unused"),
+                        "unusedActions", list("GET /unused", "POST /data"),
                         "unusedResponseCodes", list("200 in GET /data", "201 in GET /data", "201 in POST /data"),
                         "unusedResponseHeaders", list("rh in GET /data -> 200")
                 )),
@@ -173,11 +173,11 @@ public class CommandTest {
 
         final UsageData simple = resAsUsage.get("simple");
 
-        assertEquals(list("POST /data"), simple.getUnusedActions());
+        assertEquals(list("GET /unused","POST /data"), simple.getUnusedActions());
         assertEquals(list("a in POST /data (application/x-www-form-urlencoded)"), simple.getUnusedFormParameters());
         assertEquals(list(), simple.getUnusedQueryParameters());
         assertEquals(list("head in GET /data"), simple.getUnusedRequestHeaders());
-        assertEquals(list("/super/sub"), simple.getUnusedResources());
+        assertEquals(list("/unused"), simple.getUnusedResources());
         assertEquals(list("200 in GET /data", "201 in GET /data", "201 in POST /data"), simple.getUnusedResponseCodes());
         assertEquals(list("rh in GET /data -> 200"), simple.getUnusedResponseHeaders());
     }
