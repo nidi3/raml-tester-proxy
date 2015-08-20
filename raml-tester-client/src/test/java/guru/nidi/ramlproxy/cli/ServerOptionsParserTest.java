@@ -18,10 +18,12 @@ package guru.nidi.ramlproxy.cli;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.core.ValidatorConfigurator;
 import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramltester.core.Validation;
 import org.apache.commons.cli.ParseException;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 
 import static guru.nidi.ramlproxy.cli.OptionsParser.DEFAULT_PORT;
 import static org.junit.Assert.assertEquals;
@@ -83,13 +85,37 @@ public class ServerOptionsParserTest {
     @Test
     public void exactDelay() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 123, ValidatorConfigurator.DEFAULT), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 123, ValidatorConfigurator.NONE), opt);
     }
 
     @Test
     public void minMaxDelay() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123-456"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 456, ValidatorConfigurator.DEFAULT), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 456, ValidatorConfigurator.NONE), opt);
+    }
+
+    @Test
+    public void emptyValidator() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-v"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 0, 0, ValidatorConfigurator.DEFAULT), opt);
+    }
+
+    @Test
+    public void featuresValidator() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-vempty"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 0, 0, new ValidatorConfigurator("-vempty", Arrays.asList(Validation.EMPTY), null, null, null)), opt);
+    }
+
+    @Test
+    public void patternValidator() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-vresourcePattern=a"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 0, 0, new ValidatorConfigurator("-vresourcePattern=a", Arrays.asList(Validation.values()), "a", null, null)), opt);
+    }
+
+    @Test
+    public void featuresAndPatternValidator() throws ParseException {
+        final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-vempty,resourcePattern=a"});
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 0, 0, new ValidatorConfigurator("-vempty,resourcePattern=a", Arrays.asList(Validation.EMPTY), "a", null, null)), opt);
     }
 
     @Test

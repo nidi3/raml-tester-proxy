@@ -18,7 +18,6 @@ package guru.nidi.ramlproxy.cli;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.core.ValidatorConfigurator;
 import guru.nidi.ramlproxy.report.ReportFormat;
-import guru.nidi.ramltester.core.RamlValidator;
 import guru.nidi.ramltester.core.Validation;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -28,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.commons.cli.OptionBuilder.withDescription;
@@ -88,23 +88,10 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
                 }
             }
         }
-        return new ValidatorConfigurator() {
-            @Override
-            public RamlValidator configure(RamlValidator validator) {
-                return validator
-                        .withChecks(validations.isEmpty()
-                                ? Validation.values()
-                                : validations.toArray(new Validation[validations.size()]))
-                        .withResourcePattern(patterns[0])
-                        .withParameterPattern(patterns[1])
-                        .withHeaderPattern(patterns[2]);
-            }
-
-            @Override
-            public String asCli() {
-                return "-v" + (v == null ? "" : v);
-            }
-        };
+        return new ValidatorConfigurator(
+                "-v" + (v == null ? "" : v),
+                validations.isEmpty() ? Arrays.asList(Validation.values()) : validations,
+                patterns[0], patterns[1], patterns[2]);
     }
 
     private int[] parseDelay(String delay) throws ParseException {

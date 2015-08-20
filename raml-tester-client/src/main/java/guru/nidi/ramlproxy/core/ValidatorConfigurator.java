@@ -16,36 +16,91 @@
 package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramltester.core.RamlValidator;
+import guru.nidi.ramltester.core.Validation;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *
  */
-public interface ValidatorConfigurator {
-    ValidatorConfigurator DEFAULT = new ValidatorConfigurator() {
-        @Override
-        public RamlValidator configure(RamlValidator validator) {
-            return validator;
+public class ValidatorConfigurator {
+    public static final ValidatorConfigurator
+            DEFAULT = new ValidatorConfigurator("-v", Arrays.asList(Validation.values()), null, null, null),
+            NONE = new ValidatorConfigurator("", Collections.<Validation>emptyList(), null, null, null);
+
+    private final String cli;
+    private final List<Validation> validations;
+    private final String resourcePattern;
+    private final String parameterPattern;
+    private final String headerPattern;
+
+    public ValidatorConfigurator(String cli, List<Validation> validations, String resourcePattern, String parameterPattern, String headerPattern) {
+        this.cli = cli;
+        this.validations = validations;
+        this.resourcePattern = resourcePattern;
+        this.parameterPattern = parameterPattern;
+        this.headerPattern = headerPattern;
+    }
+
+
+    public RamlValidator configure(RamlValidator validator) {
+        return validator
+                .withChecks(validations.toArray(new Validation[validations.size()]))
+                .withResourcePattern(resourcePattern)
+                .withParameterPattern(parameterPattern)
+                .withHeaderPattern(headerPattern);
+    }
+
+    public String asCli() {
+        return cli;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
         }
 
-        @Override
-        public String asCli() {
-            return "-v";
+        ValidatorConfigurator that = (ValidatorConfigurator) o;
+
+        if (cli != null ? !cli.equals(that.cli) : that.cli != null) {
+            return false;
         }
-    };
-    ValidatorConfigurator NONE = new ValidatorConfigurator() {
-        @Override
-        public RamlValidator configure(RamlValidator validator) {
-            return validator.withChecks();
+        if (validations != null ? !validations.equals(that.validations) : that.validations != null) {
+            return false;
         }
-
-        @Override
-        public String asCli() {
-            return "";
+        if (resourcePattern != null ? !resourcePattern.equals(that.resourcePattern) : that.resourcePattern != null) {
+            return false;
         }
-    };
+        if (parameterPattern != null ? !parameterPattern.equals(that.parameterPattern) : that.parameterPattern != null) {
+            return false;
+        }
+        return !(headerPattern != null ? !headerPattern.equals(that.headerPattern) : that.headerPattern != null);
 
-    RamlValidator configure(RamlValidator validator);
+    }
 
-    String asCli();
+    @Override
+    public int hashCode() {
+        int result = cli != null ? cli.hashCode() : 0;
+        result = 31 * result + (validations != null ? validations.hashCode() : 0);
+        result = 31 * result + (resourcePattern != null ? resourcePattern.hashCode() : 0);
+        result = 31 * result + (parameterPattern != null ? parameterPattern.hashCode() : 0);
+        result = 31 * result + (headerPattern != null ? headerPattern.hashCode() : 0);
+        return result;
+    }
 
+    @Override
+    public String toString() {
+        return "ValidatorConfigurator{" +
+                "validations=" + validations +
+                ", resourcePattern='" + resourcePattern + '\'' +
+                ", parameterPattern='" + parameterPattern + '\'' +
+                ", headerPattern='" + headerPattern + '\'' +
+                '}';
+    }
 }

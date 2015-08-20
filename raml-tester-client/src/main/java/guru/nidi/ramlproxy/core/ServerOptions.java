@@ -41,11 +41,11 @@ public class ServerOptions {
     private final ValidatorConfigurator validatorConfigurator;
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, 0, 0, ValidatorConfigurator.DEFAULT);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, 0, 0, ValidatorConfigurator.NONE);
     }
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, 0, 0, ValidatorConfigurator.DEFAULT);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, 0, 0, ValidatorConfigurator.NONE);
     }
 
     public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode, int minDelay, int maxDelay, ValidatorConfigurator validatorConfigurator) {
@@ -163,6 +163,24 @@ public class ServerOptions {
     }
 
     @Override
+    public String toString() {
+        return "ServerOptions{" +
+                "port=" + port +
+                ", target='" + target + '\'' +
+                ", mockDir=" + mockDir +
+                ", ramlUri='" + ramlUri + '\'' +
+                ", baseUri='" + baseUri + '\'' +
+                ", saveDir=" + saveDir +
+                ", fileFormat=" + fileFormat +
+                ", ignoreXheaders=" + ignoreXheaders +
+                ", asyncMode=" + asyncMode +
+                ", minDelay=" + minDelay +
+                ", maxDelay=" + maxDelay +
+                ", validatorConfigurator=" + validatorConfigurator +
+                '}';
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -182,6 +200,12 @@ public class ServerOptions {
         if (asyncMode != that.asyncMode) {
             return false;
         }
+        if (minDelay != that.minDelay) {
+            return false;
+        }
+        if (maxDelay != that.maxDelay) {
+            return false;
+        }
         if (target != null ? !target.equals(that.target) : that.target != null) {
             return false;
         }
@@ -197,13 +221,10 @@ public class ServerOptions {
         if (saveDir != null ? !saveDir.equals(that.saveDir) : that.saveDir != null) {
             return false;
         }
-        if (minDelay != that.minDelay) {
+        if (fileFormat != that.fileFormat) {
             return false;
         }
-        if (maxDelay != that.maxDelay) {
-            return false;
-        }
-        return fileFormat == that.fileFormat;
+        return !(validatorConfigurator != null ? !validatorConfigurator.equals(that.validatorConfigurator) : that.validatorConfigurator != null);
 
     }
 
@@ -220,23 +241,8 @@ public class ServerOptions {
         result = 31 * result + (asyncMode ? 1 : 0);
         result = 31 * result + minDelay;
         result = 31 * result + maxDelay;
+        result = 31 * result + (validatorConfigurator != null ? validatorConfigurator.hashCode() : 0);
         return result;
     }
 
-    @Override
-    public String toString() {
-        return "ServerOptions{" +
-                "port=" + port +
-                ", target='" + target + '\'' +
-                ", mockDir=" + mockDir +
-                ", ramlUri='" + ramlUri + '\'' +
-                ", baseUri='" + baseUri + '\'' +
-                ", saveDir=" + saveDir +
-                ", fileFormat=" + fileFormat +
-                ", ignoreXheaders=" + ignoreXheaders +
-                ", asyncMode=" + asyncMode +
-                ", minDelay=" + minDelay +
-                ", maxDelay=" + maxDelay +
-                '}';
-    }
 }
