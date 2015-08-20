@@ -53,13 +53,21 @@ class ClientOptionsParser extends OptionsParser<ClientOptions> {
     }
 
     @Override
+    protected String command() {
+        return super.command() + " command";
+    }
+
+    @Override
     protected String helpHeader() {
         return "" +
+                "Commands:\n" +
                 "ping         Ping the proxy\n" +
                 "stop         Stop the proxy\n" +
                 "reload       Reload the RAML file\n" +
                 "reports      Get the reports of the RAML violations\n" +
-                "usage        Get information about usage of RAML elements\n";
+                "usage        Get information about usage of RAML elements\n" +
+                "validate     Get the validation report of the RAML itself\n" +
+                "Options:\n";
     }
 
     @Override

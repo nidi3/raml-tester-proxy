@@ -31,6 +31,7 @@ public class ValidationData {
         this.ramlTitle = ramlTitle;
         this.validationViolations = validationViolations;
     }
+
     public String getRamlTitle() {
         return ramlTitle;
     }

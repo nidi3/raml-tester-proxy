@@ -61,7 +61,7 @@ public class MockServlet extends HttpServlet {
         final ServletOutputStream out = res.getOutputStream();
         final File targetDir = new File(mockDir, path);
         final File file = findFileOrParent(targetDir, name, req.getMethod());
-        CommandDecorators.ALLOW_ORIGIN.set(req,res);
+        CommandDecorators.ALLOW_ORIGIN.set(req, res);
         if (file == null) {
             res.sendError(HttpServletResponse.SC_NOT_FOUND, "No or multiple file '" + name + "' found in directory '" + targetDir.getAbsolutePath() + "'");
             return;

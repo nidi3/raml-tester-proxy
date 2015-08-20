@@ -16,13 +16,19 @@
 package guru.nidi.ramlproxy.cli;
 
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.core.ValidatorConfigurator;
 import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramltester.core.RamlValidator;
+import guru.nidi.ramltester.core.Validation;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.commons.cli.OptionBuilder.withDescription;
 
@@ -46,7 +52,59 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
         final ReportFormat fileFormat = parseReportFormat(cmd.getOptionValue('f'));
         final boolean asyncMode = cmd.hasOption('a');
         final int[] delay = parseDelay(cmd.getOptionValue('d'));
-        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, asyncMode, delay[0], delay[1]);
+        final ValidatorConfigurator validatorConfigurator = parseValidator(cmd.hasOption('v'), cmd.getOptionValue('v'));
+        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, asyncMode, delay[0], delay[1], validatorConfigurator);
+    }
+
+    private ValidatorConfigurator parseValidator(boolean hasV, final String v) throws ParseException {
+        if (!hasV) {
+            return ValidatorConfigurator.NONE;
+        }
+        final List<Validation> validations = new ArrayList<>();
+        final String[] patterns = new String[3];
+        if (v != null) {
+            for (final String part : v.split(",")) {
+                final String[] sub = part.split("=");
+                if (sub.length == 1) {
+                    try {
+                        validations.add(Validation.valueOf(sub[0].toUpperCase()));
+                    } catch (IllegalArgumentException e) {
+                        throw new ParseException("Unknown validation '" + sub[0] + "'");
+                    }
+                } else {
+                    switch (sub[0]) {
+                        case "resourcePattern":
+                            patterns[0] = sub[1];
+                            break;
+                        case "parameterPattern":
+                            patterns[1] = sub[1];
+                            break;
+                        case "headerPattern":
+                            patterns[2] = sub[1];
+                            break;
+                        default:
+                            throw new ParseException("Unknown validation '" + sub[0] + "'");
+                    }
+                }
+            }
+        }
+        return new ValidatorConfigurator() {
+            @Override
+            public RamlValidator configure(RamlValidator validator) {
+                return validator
+                        .withChecks(validations.isEmpty()
+                                ? Validation.values()
+                                : validations.toArray(new Validation[validations.size()]))
+                        .withResourcePattern(patterns[0])
+                        .withParameterPattern(patterns[1])
+                        .withHeaderPattern(patterns[2]);
+            }
+
+            @Override
+            public String asCli() {
+                return "-v" + (v == null ? "" : v);
+            }
+        };
     }
 
     private int[] parseDelay(String delay) throws ParseException {
@@ -113,12 +171,13 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
 
     @Override
     protected OptionComparator optionComparator() {
-        return new OptionComparator("rptmbasfid");
+        return new OptionComparator("rptmbasfidv");
     }
 
     @SuppressWarnings("static-access")
     @Override
     protected Options createOptions() {
+        final String validations = StringUtils.join(Validation.values(), ", ").toLowerCase();
         return new Options()
                 .addOption(withDescription("Port to listen to\nDefault: " + DEFAULT_PORT).isRequired(false).withArgName("port").hasArg(true).create('p'))
                 .addOption(withDescription("Target URL to forward to").isRequired(false).withArgName("URL").hasArg(true).create('t'))
@@ -129,6 +188,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
                 .addOption(withDescription("Format to use for report files\nFormat: text|json\nDefault: text").isRequired(false).withArgName("format").hasArg(true).create('f'))
                 .addOption(withDescription("Ignore X-headers\nDefault: false").isRequired(false).hasArg(false).create('i'))
                 .addOption(withDescription("Asynchronous mode\nDefault: false").isRequired(false).hasArg(false).create('a'))
-                .addOption(withDescription("Delay the response (in milliseconds)\nFormat: [minDelay-]maxDelay\nDefault: 0").isRequired(false).withArgName("delay").hasArg(true).create('d'));
+                .addOption(withDescription("Delay the response (in milliseconds)\nFormat: [minDelay-]maxDelay\nDefault: 0").isRequired(false).withArgName("delay").hasArg(true).create('d'))
+                .addOption(withDescription("Validate the RAML\nFormat: Comma separated list of validations\nValidations are " + validations + ", resourcePattern=regex, paramPattern=regex, headerPattern=regex\nDefault: All parameterless validations").isRequired(false).withArgName("validations").hasOptionalArg().create('v'));
     }
 }

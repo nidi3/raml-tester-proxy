@@ -41,7 +41,6 @@ import static guru.nidi.ramlproxy.CollectionUtils.list;
 import static guru.nidi.ramlproxy.CollectionUtils.map;
 import static guru.nidi.ramlproxy.core.Command.*;
 import static guru.nidi.ramlproxy.core.CommandSender.content;
-import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.*;
 
 /**
@@ -245,9 +244,7 @@ public class CommandTest {
         final String content = content(res);
         final ValidationData resAsData = mapped(content, ValidationData.class);
         assertEquals("simple", resAsData.getRamlTitle());
-        assertThat(resAsData.getValidationViolations().get(0),
-                startsWith("Example does not match schema for action(GET /data) response(200) mime-type('application/json')\n" +
-                        "Content: wrong\n" + "Message: Schema invalid:"));
+        assertEquals(resAsData.getValidationViolations().get(0), "Root definition has no description");
     }
 
     @SuppressWarnings("unchecked")

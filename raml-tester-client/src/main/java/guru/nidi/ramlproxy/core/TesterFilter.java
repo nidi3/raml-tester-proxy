@@ -41,10 +41,13 @@ public class TesterFilter implements Filter, CommandContext {
 
     private RamlDefinition ramlDefinition;
 
-    public TesterFilter(RamlProxyServer proxy, ReportSaver saver) {
+    public TesterFilter(RamlProxyServer proxy, ReportSaver saver, RamlDefinition ramlDefinition) {
         this.proxy = proxy;
         this.saver = saver;
-        reloadRamlDefinition();
+        this.ramlDefinition = ramlDefinition;
+        if (ramlDefinition == null) {
+            reloadRamlDefinition();
+        }
     }
 
     @Override
@@ -117,7 +120,7 @@ public class TesterFilter implements Filter, CommandContext {
 
     @Override
     public RamlReport validateRaml() {
-        return ramlDefinition.validate();
+        return proxy.validateRaml(ramlDefinition);
     }
 
     @Override

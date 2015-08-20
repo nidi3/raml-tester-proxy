@@ -16,6 +16,9 @@
 package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramltester.RamlDefinition;
+import guru.nidi.ramltester.RamlLoaders;
+import guru.nidi.ramltester.core.RamlReport;
 
 import java.io.File;
 import java.util.Arrays;
@@ -35,16 +38,17 @@ public class ServerOptions {
     private final boolean ignoreXheaders;
     private final boolean asyncMode;
     private final int minDelay, maxDelay;
+    private final ValidatorConfigurator validatorConfigurator;
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, 0, 0);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, null, null, false, false, 0, 0, ValidatorConfigurator.DEFAULT);
     }
 
     public ServerOptions(int port, String targetOrMockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders) {
-        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, 0, 0);
+        this(port, target(targetOrMockDir), mockDir(targetOrMockDir), ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, 0, 0, ValidatorConfigurator.DEFAULT);
     }
 
-    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode, int minDelay, int maxDelay) {
+    public ServerOptions(int port, String target, File mockDir, String ramlUri, String baseUri, File saveDir, ReportFormat fileFormat, boolean ignoreXheaders, boolean asyncMode, int minDelay, int maxDelay, ValidatorConfigurator validatorConfigurator) {
         this.port = port;
         this.target = target;
         this.mockDir = mockDir;
@@ -56,10 +60,11 @@ public class ServerOptions {
         this.asyncMode = asyncMode;
         this.minDelay = minDelay;
         this.maxDelay = maxDelay;
+        this.validatorConfigurator = validatorConfigurator;
     }
 
     public ServerOptions withoutAsyncMode() {
-        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, minDelay, maxDelay);
+        return new ServerOptions(port, target, mockDir, ramlUri, baseUri, saveDir, fileFormat, ignoreXheaders, false, minDelay, maxDelay, validatorConfigurator);
     }
 
     private static String target(String targetOrMockDir) {
@@ -81,7 +86,8 @@ public class ServerOptions {
                 (fileFormat != null ? (" -f" + fileFormat) : "") +
                 (ignoreXheaders ? " -i" : "") +
                 (asyncMode ? " -a" : "") +
-                (" -d" + minDelay + "-" + maxDelay);
+                (" -d" + minDelay + "-" + maxDelay) +
+                (" " + validatorConfigurator.asCli());
         return Arrays.asList(args.split(" "));
     }
 
@@ -139,6 +145,21 @@ public class ServerOptions {
 
     public int getMaxDelay() {
         return maxDelay;
+    }
+
+    public ValidatorConfigurator getValidatorConfigurator() {
+        return validatorConfigurator;
+    }
+
+    public RamlDefinition fetchRamlDefinition() {
+        return RamlLoaders.fromFile(".")
+                .load(getRamlUri())
+                .ignoringXheaders(isIgnoreXheaders())
+                .assumingBaseUri(getBaseOrTargetUri());
+    }
+
+    public RamlReport validateRaml(RamlDefinition ramlDefinition) {
+        return getValidatorConfigurator().configure(ramlDefinition.validator()).validate();
     }
 
     @Override

@@ -35,6 +35,10 @@ abstract class OptionsParser<T> {
 
     abstract protected T parse(String[] args) throws ParseException;
 
+    protected String command() {
+        return "java -jar raml-tester-standalone.jar";
+    }
+
     protected String helpHeader() {
         return "";
     }
@@ -62,7 +66,7 @@ abstract class OptionsParser<T> {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(80);
         formatter.setOptionComparator(optionComparator());
-        formatter.printHelp("java -jar raml-tester-standalone.jar", helpHeader(), createOptions(), "", true);
+        formatter.printHelp(command(), helpHeader(), createOptions(), "", true);
     }
 
     protected String[] expandArgs(String[] args) {

@@ -20,6 +20,7 @@ import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.core.TesterFilter;
 import guru.nidi.ramlproxy.report.ReportSaver;
+import guru.nidi.ramltester.RamlDefinition;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -34,11 +35,11 @@ import java.util.EnumSet;
 public class JettyRamlProxyServer extends RamlProxyServer {
     private final Server server;
 
-    public JettyRamlProxyServer(ServerOptions options, ReportSaver saver) throws Exception {
+    public JettyRamlProxyServer(ServerOptions options, ReportSaver saver, RamlDefinition definition) throws Exception {
         super(options, saver);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
-        final TesterFilter testerFilter = new TesterFilter(this, saver);
+        final TesterFilter testerFilter = new TesterFilter(this, saver, definition);
         final ServletHolder servlet;
         if (options.isMockMode()) {
             servlet = new ServletHolder(new MockServlet(options.getMockDir()));

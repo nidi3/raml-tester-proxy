@@ -20,6 +20,7 @@ import guru.nidi.ramlproxy.jetty.JettyRamlProxyServer;
 import guru.nidi.ramlproxy.jetty.JettyServerProvider;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.Reporter;
+import guru.nidi.ramltester.RamlDefinition;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -40,17 +41,25 @@ import java.net.Socket;
 public class RamlProxy {
     private static final RamlProxy INSTANCE = new RamlProxy();
 
-    public static void prestartServer(int port){
+    public static void prestartServer(int port) {
         JettyServerProvider.prestartServer(port);
     }
 
     public static RamlProxyServer startServerSync(ServerOptions options) throws Exception {
-        return startServerSync(options, new Reporter(options.getSaveDir(), options.getFileFormat()));
+        return startServerSync(options, (RamlDefinition) null);
     }
 
     public static RamlProxyServer startServerSync(ServerOptions options, ReportSaver saver) throws Exception {
+        return startServerSync(options, saver, null);
+    }
+
+    public static RamlProxyServer startServerSync(ServerOptions options, RamlDefinition definition) throws Exception {
+        return startServerSync(options, new Reporter(options.getSaveDir(), options.getFileFormat()), definition);
+    }
+
+    public static RamlProxyServer startServerSync(ServerOptions options, ReportSaver saver, RamlDefinition definition) throws Exception {
         INSTANCE.stopServer(options.getPort());
-        return new JettyRamlProxyServer(options, saver);
+        return new JettyRamlProxyServer(options, saver, definition);
     }
 
     public static SubProcess startServerAsync(ServerOptions options) throws Exception {

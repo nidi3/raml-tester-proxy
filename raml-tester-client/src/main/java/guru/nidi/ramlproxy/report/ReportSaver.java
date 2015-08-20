@@ -71,7 +71,7 @@ public class ReportSaver {
         return reports.entrySet();
     }
 
-    public synchronized List<ReportInfo> getReports(String context){
+    public synchronized List<ReportInfo> getReports(String context) {
         return reports.get(context);
     }
 

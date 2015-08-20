@@ -47,6 +47,7 @@ public class ViolationData {
         this.responseHeaders = responseHeaders;
         this.responseViolations = responseViolations;
     }
+
     public long getId() {
         return id;
     }

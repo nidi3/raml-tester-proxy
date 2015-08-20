@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy.cli;
 
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.core.ValidatorConfigurator;
 import guru.nidi.ramlproxy.report.ReportFormat;
 import org.apache.commons.cli.ParseException;
 import org.junit.Test;
@@ -82,13 +83,13 @@ public class ServerOptionsParserTest {
     @Test
     public void exactDelay() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 123), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 123, ValidatorConfigurator.DEFAULT), opt);
     }
 
     @Test
     public void minMaxDelay() throws ParseException {
         final ServerOptions opt = parser.fromArgs(new String[]{"-r", "raml", "-t", "http://target", "-d", "123-456"});
-        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 456), opt);
+        assertEquals(new ServerOptions(DEFAULT_PORT, "http://target", null, "raml", null, null, ReportFormat.TEXT, false, false, 123, 456, ValidatorConfigurator.DEFAULT), opt);
     }
 
     @Test

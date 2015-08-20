@@ -17,7 +17,7 @@ package guru.nidi.ramlproxy.core;
 
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.RamlDefinition;
-import guru.nidi.ramltester.RamlLoaders;
+import guru.nidi.ramltester.core.RamlReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,10 +68,11 @@ public abstract class RamlProxyServer implements AutoCloseable {
     }
 
     public RamlDefinition fetchRamlDefinition() {
-        return RamlLoaders.fromFile(".")
-                .load(options.getRamlUri())
-                .ignoringXheaders(options.isIgnoreXheaders())
-                .assumingBaseUri(options.getBaseOrTargetUri());
+        return options.fetchRamlDefinition();
+    }
+
+    public RamlReport validateRaml(RamlDefinition ramlDefinition) {
+        return options.validateRaml(ramlDefinition);
     }
 
     public void delay() {

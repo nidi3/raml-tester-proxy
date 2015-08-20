@@ -18,7 +18,11 @@ package guru.nidi.ramlproxy.cli;
 import guru.nidi.ramlproxy.RamlProxy;
 import guru.nidi.ramlproxy.core.ClientOptions;
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramltester.RamlDefinition;
+import guru.nidi.ramltester.core.RamlReport;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -27,6 +31,8 @@ import java.net.ConnectException;
  *
  */
 public class Main {
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             showHelp();
@@ -48,11 +54,24 @@ public class Main {
             RamlProxy.startServerAsync(options);
         } else {
             RamlProxy.prestartServer(options.getPort());
+            final RamlDefinition definition = validate(options);
             if (!options.isMockMode()) {
                 initSslFactory();
             }
-            RamlProxy.startServerSync(options).waitForServer();
+            RamlProxy.startServerSync(options, definition).waitForServer();
         }
+    }
+
+    private static RamlDefinition validate(ServerOptions options) {
+        final RamlDefinition definition = options.fetchRamlDefinition();
+        final RamlReport validate = options.validateRaml(definition);
+        if (!validate.getValidationViolations().isEmpty()) {
+            log.warn("The RAML file has validation errors:");
+            for (final String violation : validate.getValidationViolations()) {
+                log.warn(violation);
+            }
+        }
+        return definition;
     }
 
     private static void initSslFactory() {
