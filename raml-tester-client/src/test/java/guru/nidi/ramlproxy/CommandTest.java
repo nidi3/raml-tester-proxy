@@ -18,6 +18,7 @@ package guru.nidi.ramlproxy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
+import guru.nidi.ramlproxy.core.ValidatorConfigurator;
 import guru.nidi.ramlproxy.report.*;
 import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
@@ -67,10 +68,10 @@ public class CommandTest {
             //ignore
         }
         mock = RamlProxy.startServerSync(
-                new ServerOptions(mockSender.getPort(), Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true),
+                new ServerOptions(mockSender.getPort(),null, new File(Ramls.MOCK_DIR), Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true,false,0,0,ValidatorConfigurator.DEFAULT),
                 new ReportSaver());
         proxy = RamlProxy.startServerSync(
-                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null),
+                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND,null),
                 new ReportSaver(aggregator));
     }
 
@@ -173,7 +174,7 @@ public class CommandTest {
 
         final UsageData simple = resAsUsage.get("simple");
 
-        assertEquals(list("GET /unused","POST /data"), simple.getUnusedActions());
+        assertEquals(list("GET /unused", "POST /data"), simple.getUnusedActions());
         assertEquals(list("a in POST /data (application/x-www-form-urlencoded)"), simple.getUnusedFormParameters());
         assertEquals(list(), simple.getUnusedQueryParameters());
         assertEquals(list("head in GET /data"), simple.getUnusedRequestHeaders());
