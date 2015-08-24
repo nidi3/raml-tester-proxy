@@ -107,6 +107,10 @@ public class ServerOptions {
         return mockDir != null;
     }
 
+    public boolean isValidationOnly() {
+        return target == null && mockDir == null;
+    }
+
     public File getMockDir() {
         return mockDir;
     }
@@ -124,7 +128,7 @@ public class ServerOptions {
     }
 
     public String getBaseOrTargetUri() {
-        return getBaseUri() != null ? getBaseUri() : getTargetUrl();
+        return getBaseUri() != null ? getBaseUri() : (target != null ? getTargetUrl() : null);
     }
 
     public ReportFormat getFileFormat() {

@@ -55,6 +55,9 @@ public class Main {
         } else {
             RamlProxy.prestartServer(options.getPort());
             final RamlDefinition definition = validate(options);
+            if (options.isValidationOnly()) {
+                return;
+            }
             if (!options.isMockMode()) {
                 initSslFactory();
             }
@@ -66,9 +69,9 @@ public class Main {
         final RamlDefinition definition = options.fetchRamlDefinition();
         final RamlReport validate = options.validateRaml(definition);
         if (!validate.getValidationViolations().isEmpty()) {
-            log.warn("The RAML file has validation errors:");
+            System.out.println("The RAML file has validation errors:");
             for (final String violation : validate.getValidationViolations()) {
-                log.warn(violation);
+                System.out.println("- " + violation);
             }
         }
         return definition;

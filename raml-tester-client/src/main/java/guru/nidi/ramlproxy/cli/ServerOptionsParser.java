@@ -40,7 +40,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
     protected ServerOptions parse(String[] args) throws ParseException {
         final CommandLine cmd = new BasicParser().parse(createOptions(), expandArgs(args));
 
-        checkEitherTargetOrMockDir(cmd);
+        validate(cmd);
 
         final int port = parsePort(cmd);
         final String target = cmd.getOptionValue('t');
@@ -121,12 +121,12 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
         return baseUri;
     }
 
-    private void checkEitherTargetOrMockDir(CommandLine cmd) throws ParseException {
+    private void validate(CommandLine cmd) throws ParseException {
         final String target = cmd.getOptionValue('t');
         if (target != null && !target.startsWith("http")) {
             throw new ParseException("Target must be an URL");
         }
-        if ((target != null && cmd.hasOption('m')) || (target == null && !cmd.hasOption('m'))) {
+        if ((target != null && cmd.hasOption('m')) || (!cmd.hasOption('v') && target == null && !cmd.hasOption('m'))) {
             throw new ParseException("Must specify either target (-t) or mock directory (-m)");
         }
     }
