@@ -22,9 +22,9 @@ import jdepend.framework.PackageFilter;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Collection;
 
-import static org.junit.Assert.*;
+import static jdepend.framework.DependencyMatchers.*;
+import static org.junit.Assert.assertThat;
 
 /**
  *
@@ -64,9 +64,9 @@ public class DependencyTest {
         jetty.dependsUpon(core);
         jetty.dependsUpon(report);
 
-        final Collection analyze = jDepend.analyze();
+        jDepend.analyze();
 
-        assertTrue("Dependency mismatch", jDepend.dependencyMatch(constraint));
+        assertThat(jDepend, matches(constraint));
     }
 
     @Test
@@ -79,20 +79,11 @@ public class DependencyTest {
         });
         jDepend.addDirectory(Ramls.clientDir("target/classes"));
 
-        @SuppressWarnings("unchecked")
-        final Collection<JavaPackage> packages = jDepend.analyze();
-        assertFalse("Cyclic dependencies", jDepend.containsCycles());
+        jDepend.analyze();
+        assertThat(jDepend, hasNoCycles());
 
-        System.out.println("Name                                      abst  inst  dist");
-        System.out.println("----------------------------------------------------------");
-        for (JavaPackage pack : packages) {
-            if (pack.getName().startsWith("guru.")) {
-                System.out.printf("%-40s: %-1.2f  %-1.2f  %-1.2f%n", pack.getName(), pack.abstractness(), pack.instability(), pack.distance());
-                if (!pack.getName().endsWith("report")) {
-                    assertEquals("Distance exceeded: " + pack.getName(), 0, pack.distance(), .7f);
-                }
-            }
-        }
+        System.out.println(distances(jDepend, "guru."));
+        assertThat(jDepend, hasMaxDistance("guru.", .93));
     }
 
 }
