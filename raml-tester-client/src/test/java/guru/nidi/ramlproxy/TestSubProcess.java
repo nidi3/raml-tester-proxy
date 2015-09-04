@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 public class TestSubProcess extends SubProcess {
     private static final Pattern VERSION = Pattern.compile("<version>(.+?)</version>");
 
-    public TestSubProcess(String... parameters) throws IOException, InterruptedException {
+    public TestSubProcess(String... parameters) throws IOException {
         super(findJar(), Arrays.asList(parameters));
     }
 

@@ -86,7 +86,7 @@ public class MockServlet extends HttpServlet {
         return file;
     }
 
-    private void handleMeta(HttpServletRequest req, HttpServletResponse res, File targetDir, String name) throws IOException {
+    private void handleMeta(HttpServletRequest req, HttpServletResponse res, File targetDir, String name) {
         final int dotPos = name.lastIndexOf('.');
         if (dotPos > 0) {
             name = name.substring(0, dotPos);

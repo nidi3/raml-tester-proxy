@@ -33,7 +33,7 @@ public abstract class RamlProxyServer implements AutoCloseable {
     private final ReportSaver saver;
     private final Thread shutdownHook;
 
-    public RamlProxyServer(ServerOptions options, ReportSaver saver) throws Exception {
+    public RamlProxyServer(ServerOptions options, ReportSaver saver) {
         this.options = options;
         this.saver = saver;
         shutdownHook = shutdownHook(saver);

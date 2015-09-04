@@ -33,7 +33,7 @@ public class SubProcess implements AutoCloseable {
     private final Process[] proc = new Process[1];
     private final BlockingQueue<String> output = new ArrayBlockingQueue<>(1000);
 
-    public SubProcess(String jarFile, List<String> parameters) throws IOException, InterruptedException {
+    public SubProcess(String jarFile, List<String> parameters) throws IOException {
         final ArrayList<String> params = new ArrayList<>(Arrays.asList("java", "-jar", jarFile));
         params.addAll(parameters);
         proc[0] = new ProcessBuilder(params).redirectErrorStream(true).start();
@@ -75,9 +75,8 @@ public class SubProcess implements AutoCloseable {
     }
 
     public void readAllLines() throws InterruptedException {
-        while (readLine() != null) {
-            ;
-        }
+        //noinspection StatementWithEmptyBody
+        while (readLine() != null);
     }
 
     public boolean hasEnded() {

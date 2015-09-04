@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class HighlevelTest {
     @Test
-    public void async() throws Exception {
+    public void async() {
         try (final SubProcess proxy = RamlProxy.startServerAsync(new ServerOptions(8099, Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", null, null, true))) {
             final HttpSender sender = new HttpSender(8099);
             assertEquals("42", sender.contentOfGet("v1/data"));
