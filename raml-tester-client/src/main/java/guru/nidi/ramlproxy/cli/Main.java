@@ -16,6 +16,7 @@
 package guru.nidi.ramlproxy.cli;
 
 import guru.nidi.ramlproxy.RamlProxy;
+import guru.nidi.ramlproxy.Version;
 import guru.nidi.ramlproxy.core.ClientOptions;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramltester.RamlDefinition;
@@ -34,6 +35,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
+        System.out.println("RAML tester proxy. Version " + Version.VERSION);
         if (args.length == 0) {
             showHelp();
             System.exit(1);
