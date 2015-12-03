@@ -24,7 +24,7 @@
     <inceptionYear>2014</inceptionYear>
 
     <properties>
-        <jetty-version>9.2.10.v20150310</jetty-version>
+        <jetty-version>9.2.14.v20151106</jetty-version>
     </properties>
 
     <scm>

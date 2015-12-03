@@ -71,7 +71,7 @@ public class MockTest {
 
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = content(res);
-        assertThat(content, containsString("No or multiple file 'multi' found in directory"));
+        assertThat(content, containsString("No or multiple file &apos;multi&apos; found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
         final RamlReport report = assertOneReport();
@@ -87,7 +87,7 @@ public class MockTest {
 
         assertEquals(404, res.getStatusLine().getStatusCode());
         final String content = content(res);
-        assertThat(content, containsString("No or multiple file 'notExisting' found in directory"));
+        assertThat(content, containsString("No or multiple file &apos;notExisting&apos; found in directory"));
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
         final RamlReport report = assertOneReport();
