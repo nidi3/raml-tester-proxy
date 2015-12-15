@@ -38,10 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.CollectionUtils.list;
-import static guru.nidi.ramlproxy.CollectionUtils.map;
+import static guru.nidi.ramlproxy.CollectionUtils.*;
 import static guru.nidi.ramlproxy.core.Command.*;
 import static guru.nidi.ramlproxy.core.CommandSender.content;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.*;
 
 /**
@@ -68,10 +68,10 @@ public class CommandTest {
             //ignore
         }
         mock = RamlProxy.startServerSync(
-                new ServerOptions(mockSender.getPort(),null, new File(Ramls.MOCK_DIR), Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true,false,0,0,ValidatorConfigurator.DEFAULT),
+                new ServerOptions(mockSender.getPort(), null, new File(Ramls.MOCK_DIR), Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true, false, 0, 0, ValidatorConfigurator.DEFAULT),
                 new ReportSaver());
         proxy = RamlProxy.startServerSync(
-                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND,null),
+                new ServerOptions(proxySender.getPort(), mockSender.host(), Ramls.COMMAND, null),
                 new ReportSaver(aggregator));
     }
 
@@ -110,17 +110,17 @@ public class CommandTest {
         final String content = content(res);
         final Map<String, List<Map<String, Object>>> resAsMap = mapped(content, Map.class);
         assertEquals(map("simple", list(map(
-                        "id", 0,
-                        "requestViolations", list(),
-                        "request", "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
-                        "requestHeaders", map(
-                                "Connection", list("keep-alive"),
-                                "User-Agent", ((Map) resAsMap.get("simple").get(0).get("requestHeaders")).get("User-Agent"),
-                                "Host", list("localhost:" + mockSender.getPort()),
-                                "Accept-Encoding", list("gzip,deflate")),
-                        "responseViolations", list("Response(202) is not defined on action(GET /data)"),
-                        "response", "42",
-                        "responseHeaders", map("X-meta", list("get!"))))),
+                "id", 0,
+                "requestViolations", list(),
+                "request", "GET " + mockSender.url("v1/data") + "?q=1 from 127.0.0.1",
+                "requestHeaders", map(
+                        "Connection", list("keep-alive"),
+                        "User-Agent", ((Map) resAsMap.get("simple").get(0).get("requestHeaders")).get("User-Agent"),
+                        "Host", list("localhost:" + mockSender.getPort()),
+                        "Accept-Encoding", list("gzip,deflate")),
+                "responseViolations", list("Response(202) is not defined on action(GET /data)"),
+                "response", "42",
+                "responseHeaders", map("X-meta", list("get!"))))),
                 resAsMap);
 
         final ViolationDatas resAsData = mapped(content, ViolationDatas.class);
@@ -158,15 +158,14 @@ public class CommandTest {
         final HttpResponse res = proxySender.get(USAGE);
         final String content = content(res);
         final Map<String, Object> resAsMap = mapped(content, Map.class);
-        assertEquals(map("simple", map(
-                        "unusedQueryParameters", list(),
-                        "unusedRequestHeaders", list("head in GET /data"),
-                        "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
-                        "unusedResources", list("/unused"),
-                        "unusedActions", list("GET /unused", "POST /data"),
-                        "unusedResponseCodes", list("200 in GET /data", "201 in GET /data", "201 in POST /data"),
-                        "unusedResponseHeaders", list("rh in GET /data -> 200")
-                )),
+        assertUsageMap("simple", map(
+                "unusedQueryParameters", list(),
+                "unusedRequestHeaders", list("head in GET /data"),
+                "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
+                "unusedResources", list("/unused"),
+                "unusedActions", list("GET /unused", "POST /data"),
+                "unusedResponseCodes", list("200 in GET /data", "201 in GET /data", "201 in POST /data"),
+                "unusedResponseHeaders", list("rh in GET /data -> 200")),
                 resAsMap);
 
         final UsageDatas resAsUsage = mapped(content, UsageDatas.class);
@@ -174,13 +173,13 @@ public class CommandTest {
 
         final UsageData simple = resAsUsage.get("simple");
 
-        assertEquals(list("GET /unused", "POST /data"), simple.getUnusedActions());
-        assertEquals(list("a in POST /data (application/x-www-form-urlencoded)"), simple.getUnusedFormParameters());
-        assertEquals(list(), simple.getUnusedQueryParameters());
-        assertEquals(list("head in GET /data"), simple.getUnusedRequestHeaders());
-        assertEquals(list("/unused"), simple.getUnusedResources());
-        assertEquals(list("200 in GET /data", "201 in GET /data", "201 in POST /data"), simple.getUnusedResponseCodes());
-        assertEquals(list("rh in GET /data -> 200"), simple.getUnusedResponseHeaders());
+        assertThat(simple.getUnusedActions(), containsInAnyOrder("GET /unused", "POST /data"));
+        assertThat(simple.getUnusedFormParameters(), containsInAnyOrder("a in POST /data (application/x-www-form-urlencoded)"));
+        assertThat(simple.getUnusedQueryParameters(), containsInAnyOrder());
+        assertThat(simple.getUnusedRequestHeaders(), containsInAnyOrder("head in GET /data"));
+        assertThat(simple.getUnusedResources(), containsInAnyOrder("/unused"));
+        assertThat(simple.getUnusedResponseCodes(), containsInAnyOrder("200 in GET /data", "201 in GET /data", "201 in POST /data"));
+        assertThat(simple.getUnusedResponseHeaders(), containsInAnyOrder("rh in GET /data -> 200"));
     }
 
     @Test

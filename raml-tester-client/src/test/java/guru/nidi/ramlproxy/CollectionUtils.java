@@ -20,38 +20,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.*;
+
 /**
  *
  */
 public class CollectionUtils {
-//    public static void main(final String[] args) throws Exception {
-//        long a = System.currentTimeMillis();
-//
-//        Undertow server = Undertow.builder()
-//                .addHttpListener(8080, "localhost")
-//                .setHandler(new ProxyHandler(new SimpleProxyClientProvider(URI.create("uri")), new HttpHandler() {
-//                    @Override
-//                    public void handleRequest(HttpServerExchange exchange) throws Exception {
-//                        exchange.setResponseCode(404);
-//                    }
-//
-//                })).build();
-//                        .setHandler(new HttpHandler() {
-//                            @Override
-//                            public void handleRequest(final HttpServerExchange exchange) throws Exception {
-//                                exchange.getResponseHeaders().put(Headers.CONTENT_TYPE, "text/plain");
-//                                exchange.getResponseSender().send("Hello World");
-//                            }
-//                        }).build();
-//        server.start();
-//        System.out.println(System.currentTimeMillis() - a);
-//        server.stop();
-//
-//        try (RamlProxyServer proxy = RamlProxy.startServerSync(new ServerOptions(
-//                8099, Ramls.MOCK_DIR, Ramls.SIMPLE, "http://nidi.guru/raml", new File("target"), null, true), new ReportSaver())) {
-//
-//        }
-//    }
 
     public static Map map(Object... keysValues) {
         final Map<Object, Object> map = new HashMap<>();
@@ -64,4 +39,17 @@ public class CollectionUtils {
     public static List list(Object... values) {
         return Arrays.asList(values);
     }
+
+    public static void assertUsageMap(Map<String, List<String>> values, Map<String, List<String>> usage) {
+        assertNotNull(usage);
+        for (Map.Entry<String, List<String>> value : values.entrySet()) {
+            assertThat(usage.get(value.getKey()), containsInAnyOrder(value.getValue().toArray()));
+        }
+    }
+
+    public static void assertUsageMap(String name, Map<String, List<String>> values, Map<String, Object> usages) {
+        assertEquals(1, usages.size());
+        assertUsageMap(values, (Map<String, List<String>>) usages.get(name));
+    }
+
 }

@@ -30,9 +30,8 @@ import java.io.*;
 import java.util.List;
 import java.util.Map;
 
-import static guru.nidi.ramlproxy.CollectionUtils.list;
-import static guru.nidi.ramlproxy.CollectionUtils.map;
-import static org.hamcrest.CoreMatchers.startsWith;
+import static guru.nidi.ramlproxy.CollectionUtils.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -57,15 +56,24 @@ public class ReporterTest {
         final Reporter reporter = reporterTest(ReportFormat.TEXT);
         final File usageFile = reporter.usageFile("simple");
         assertTrue(usageFile.exists());
-        assertEquals("" +
+        //order of list has changed in jdk 1.8
+        assertThat(read(usageFile), either(
+                equalTo("" +
                         "Unused resources       : [/unused]\n" +
                         "Unused actions         : [GET /unused, POST /data]\n" +
                         "Unused form parameters : [a in POST /data (application/x-www-form-urlencoded)]\n" +
                         "Unused query parameters: [q in GET /data]\n" +
                         "Unused request headers : [head in GET /data]\n" +
                         "Unused response headers: [rh in GET /data -> 200]\n" +
-                        "Unused response codes  : [201 in GET /data, 201 in POST /data]\n",
-                read(usageFile));
+                        "Unused response codes  : [201 in GET /data, 201 in POST /data]\n"))
+                .or(equalTo("" +
+                        "Unused resources       : [/unused]\n" +
+                        "Unused actions         : [POST /data, GET /unused]\n" +
+                        "Unused form parameters : [a in POST /data (application/x-www-form-urlencoded)]\n" +
+                        "Unused query parameters: [q in GET /data]\n" +
+                        "Unused request headers : [head in GET /data]\n" +
+                        "Unused response headers: [rh in GET /data -> 200]\n" +
+                        "Unused response codes  : [201 in POST /data, 201 in GET /data]\n")));
     }
 
     private String read(File f) throws IOException {
@@ -82,14 +90,14 @@ public class ReporterTest {
     public void reporterJson() throws Exception {
         final Reporter reporter = reporterTest(ReportFormat.JSON);
         final ObjectMapper mapper = new ObjectMapper();
-        assertEquals(map(
-                        "unusedRequestHeaders", list("head in GET /data"),
-                        "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
-                        "unusedResponseHeaders", list("rh in GET /data -> 200"),
-                        "unusedResponseCodes", list("201 in GET /data", "201 in POST /data"),
-                        "unusedResources", list("/unused"),
-                        "unusedQueryParameters", list("q in GET /data"),
-                        "unusedActions", list("GET /unused","POST /data")),
+        assertUsageMap(map(
+                "unusedRequestHeaders", list("head in GET /data"),
+                "unusedFormParameters", list("a in POST /data (application/x-www-form-urlencoded)"),
+                "unusedResponseHeaders", list("rh in GET /data -> 200"),
+                "unusedResponseCodes", list("201 in GET /data", "201 in POST /data"),
+                "unusedResources", list("/unused"),
+                "unusedQueryParameters", list("q in GET /data"),
+                "unusedActions", list("GET /unused", "POST /data")),
                 mapper.readValue(reporter.usageFile("simple"), Map.class));
 
         final Map actual = mapper.readValue(reporter.violationsFile(1), Map.class);
@@ -97,19 +105,19 @@ public class ReporterTest {
         final List<String> resVio = (List<String>) actual.get("responseViolations");
         assertThat(resVio.get(0), startsWith("Body does not match schema for action(GET /data) response(200) mime-type('application/json')\nContent: illegal json\n"));
         assertEquals(map("id", 1,
-                        "request", "GET " + sender.url("data?param=1 from 127.0.0.1"),
-                        "requestHeaders", map(
-                                "Connection", list("keep-alive"),
-                                "User-Agent", ((Map) actual.get("requestHeaders")).get("User-Agent"),
-                                "Host", list("localhost:" + sender.getPort()),
-                                "Accept-Encoding", list("gzip,deflate")),
-                        "requestViolations", list("Query parameter 'param' on action(GET /data) is not defined"),
-                        "response", "illegal json",
-                        "responseHeaders", map(
-                                "Server", list("Apache-Coyote/1.1"),
-                                "Date", ((Map) actual.get("responseHeaders")).get("Date"),
-                                "Content-Type", list("application/json;charset=ISO-8859-1")),
-                        "responseViolations", resVio),
+                "request", "GET " + sender.url("data?param=1 from 127.0.0.1"),
+                "requestHeaders", map(
+                        "Connection", list("keep-alive"),
+                        "User-Agent", ((Map) actual.get("requestHeaders")).get("User-Agent"),
+                        "Host", list("localhost:" + sender.getPort()),
+                        "Accept-Encoding", list("gzip,deflate")),
+                "requestViolations", list("Query parameter 'param' on action(GET /data) is not defined"),
+                "response", "illegal json",
+                "responseHeaders", map(
+                        "Server", list("Apache-Coyote/1.1"),
+                        "Date", ((Map) actual.get("responseHeaders")).get("Date"),
+                        "Content-Type", list("application/json;charset=ISO-8859-1")),
+                "responseViolations", resVio),
                 actual);
     }
 
