@@ -4,7 +4,7 @@
     <parent>
         <artifactId>raml-tester-proxy</artifactId>
         <groupId>guru.nidi.raml</groupId>
-        <version>0.8.8-SNAPSHOT</version>
+        <version>0.8.7</version>
     </parent>
 
     <artifactId>raml-tester-client</artifactId>
