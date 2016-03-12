@@ -35,7 +35,7 @@ import java.util.EnumSet;
 public class JettyRamlProxyServer extends RamlProxyServer {
     private final Server server;
 
-    public JettyRamlProxyServer(ServerOptions options, ReportSaver saver, RamlDefinition definition) throws Exception {
+    public JettyRamlProxyServer(ServerOptions options, ReportSaver saver, RamlDefinition definition) throws InterruptedException {
         super(options, saver);
         final ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
@@ -63,7 +63,7 @@ public class JettyRamlProxyServer extends RamlProxyServer {
     }
 
     @Override
-    public void waitForServer() throws Exception {
+    public void waitForServer() throws InterruptedException {
         server.join();
     }
 

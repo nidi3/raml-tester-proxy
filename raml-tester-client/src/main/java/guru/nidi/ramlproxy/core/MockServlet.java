@@ -33,11 +33,13 @@ import java.util.Map;
  */
 public class MockServlet extends HttpServlet {
     private final static Logger log = LoggerFactory.getLogger(MockServlet.class);
-    private final static Map<String, String> EXTENSION_MIME_TYPE = new HashMap<String, String>() {{
-        put("json", "application/json");
-        put("xml", "application/xml");
-        put("txt", "text/plain");
-    }};
+    private final static Map<String, String> EXTENSION_MIME_TYPE = new HashMap<>();
+
+    static {
+        EXTENSION_MIME_TYPE.put("json", "application/json");
+        EXTENSION_MIME_TYPE.put("xml", "application/xml");
+        EXTENSION_MIME_TYPE.put("txt", "text/plain");
+    }
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final File mockDir;
@@ -58,7 +60,6 @@ public class MockServlet extends HttpServlet {
         final int pos = pathInfo.lastIndexOf('/');
         final String path = pathInfo.substring(1, pos + 1);
         final String name = pathInfo.substring(pos + 1);
-        final ServletOutputStream out = res.getOutputStream();
         final File targetDir = new File(mockDir, path);
         final File file = findFileOrParent(targetDir, name, req.getMethod());
         CommandDecorators.ALLOW_ORIGIN.set(req, res);
@@ -69,6 +70,7 @@ public class MockServlet extends HttpServlet {
         handleMeta(req, res, file.getParentFile(), file.getName());
         res.setContentLength((int) file.length());
         res.setContentType(mineType(file));
+        final ServletOutputStream out = res.getOutputStream();
         try (final InputStream in = new FileInputStream(file)) {
             copy(in, out);
         } catch (IOException e) {
@@ -113,7 +115,7 @@ public class MockServlet extends HttpServlet {
     private File findFile(File dir, String name, String method) {
         final File methodFile = findFile(dir, method + "-" + name);
         final File generalFile = findFile(dir, name);
-        return methodFile != null ? methodFile : generalFile;
+        return methodFile == null ? generalFile : methodFile;
     }
 
     private File findFile(File dir, final String name) {
@@ -122,7 +124,7 @@ public class MockServlet extends HttpServlet {
             return null;
         }
         File res = null;
-        for (File file : files) {
+        for (final File file : files) {
             final String fileName = file.getName();
             final int dotPos = fileName.lastIndexOf('.');
             if (dotPos > 0 && fileName.substring(0, dotPos).equals(name)) {

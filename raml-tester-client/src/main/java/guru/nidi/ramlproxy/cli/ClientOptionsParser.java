@@ -22,6 +22,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.Locale;
+
 import static org.apache.commons.cli.OptionBuilder.withDescription;
 
 /**
@@ -44,7 +46,7 @@ class ClientOptionsParser extends OptionsParser<ClientOptions> {
         if (cmd.getArgs().length != 1) {
             throw new ParseException("No or multiple commands found: " + cmd.getArgList());
         }
-        final String commandStr = cmd.getArgs()[0].toLowerCase();
+        final String commandStr = cmd.getArgs()[0].toLowerCase(Locale.ENGLISH);
         final Command command = Command.byName(commandStr);
         if (command == null) {
             throw new ParseException("Unknown command '" + commandStr + "'");

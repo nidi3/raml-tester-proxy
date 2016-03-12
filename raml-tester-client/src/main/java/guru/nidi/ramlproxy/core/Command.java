@@ -89,7 +89,7 @@ public enum Command {
         @Override
         public void execute(CommandContext context, PrintWriter out) throws IOException {
             final UsageDatas res = new UsageDatas();
-            for (Map.Entry<String, Usage> usage : context.getSaver().getAggregator().usages()) {
+            for (final Map.Entry<String, Usage> usage : context.getSaver().getAggregator().usages()) {
                 res.put(usage.getKey(), ReportFormat.createUsageData(usage.getValue()));
             }
             out.print(MAPPER.writeValueAsString(res));
@@ -108,9 +108,9 @@ public enum Command {
         public void execute(CommandContext context, PrintWriter out) throws IOException {
             final ViolationDatas res = new ViolationDatas();
             int id = 0;
-            for (Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : context.getSaver().getReports()) {
+            for (final Map.Entry<String, List<ReportSaver.ReportInfo>> infoMap : context.getSaver().getReports()) {
                 final List<ViolationData> data = new ArrayList<>();
-                for (ReportSaver.ReportInfo info : infoMap.getValue()) {
+                for (final ReportSaver.ReportInfo info : infoMap.getValue()) {
                     data.add(ReportFormat.createViolationData(id++, info.getReport(), info.getRequest(), info.getResponse()));
                 }
                 res.put(infoMap.getKey(), data);
@@ -180,7 +180,7 @@ public enum Command {
     }
 
     public static Command byName(String name) {
-        for (Command command : values()) {
+        for (final Command command : values()) {
             if (command.name.equals(name)) {
                 return command;
             }

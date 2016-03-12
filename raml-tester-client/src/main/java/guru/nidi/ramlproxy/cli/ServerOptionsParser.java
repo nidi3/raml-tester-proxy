@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static org.apache.commons.cli.OptionBuilder.withDescription;
 
@@ -66,25 +67,9 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
             for (final String part : v.split(",")) {
                 final String[] sub = part.split("=");
                 if (sub.length == 1) {
-                    try {
-                        validations.add(Validation.valueOf(sub[0].toUpperCase()));
-                    } catch (IllegalArgumentException e) {
-                        throw new ParseException("Unknown validation '" + sub[0] + "'");
-                    }
+                    parseValidation(sub[0], validations);
                 } else {
-                    switch (sub[0]) {
-                        case "resourcePattern":
-                            patterns[0] = sub[1];
-                            break;
-                        case "parameterPattern":
-                            patterns[1] = sub[1];
-                            break;
-                        case "headerPattern":
-                            patterns[2] = sub[1];
-                            break;
-                        default:
-                            throw new ParseException("Unknown validation '" + sub[0] + "'");
-                    }
+                    parsePattern(sub[0], sub[1], patterns);
                 }
             }
         }
@@ -92,6 +77,30 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
                 "-v" + (v == null ? "" : v),
                 validations.isEmpty() ? Arrays.asList(Validation.values()) : validations,
                 patterns[0], patterns[1], patterns[2]);
+    }
+
+    private void parseValidation(String name, List<Validation> validations) throws ParseException {
+        try {
+            validations.add(Validation.valueOf(name.toUpperCase(Locale.ENGLISH)));
+        } catch (IllegalArgumentException e) {
+            throw new ParseException("Unknown validation '" + name + "'");
+        }
+    }
+
+    private void parsePattern(String key, String value, String[] patterns) throws ParseException {
+        switch (key) {
+            case "resourcePattern":
+                patterns[0] = value;
+                break;
+            case "parameterPattern":
+                patterns[1] = value;
+                break;
+            case "headerPattern":
+                patterns[2] = value;
+                break;
+            default:
+                throw new ParseException("Unknown validation '" + key + "'");
+        }
     }
 
     private int[] parseDelay(String delay) throws ParseException {
@@ -110,7 +119,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
             final int min = Integer.parseInt(delay.substring(0, pos));
             return new int[]{min, max};
         } catch (NumberFormatException e) {
-            throw new ParseException("Invalid number in delay");
+            throw new ParseException("Invalid number in delay '" + delay + "'");
         }
     }
 
@@ -132,7 +141,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
     }
 
     private ReportFormat parseReportFormat(String format) {
-        return format != null ? ReportFormat.valueOf(format.toUpperCase()) : ReportFormat.TEXT;
+        return format == null ? ReportFormat.TEXT : ReportFormat.valueOf(format.toUpperCase(Locale.ENGLISH));
     }
 
     private File parseSaveDir(String saveDirName) {
@@ -153,7 +162,9 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
             throw new ParseException("Missing option -b");
         }
         final String mockDirName = cmd.getOptionValue('m');
-        return (mockDirName == null || mockDirName.length() == 0) ? new File("mock-files") : new File(mockDirName);
+        return mockDirName == null || mockDirName.length() == 0
+                ? new File("mock-files")
+                : new File(mockDirName);
     }
 
     @Override
@@ -164,7 +175,7 @@ class ServerOptionsParser extends OptionsParser<ServerOptions> {
     @SuppressWarnings("static-access")
     @Override
     protected Options createOptions() {
-        final String validations = StringUtils.join(Validation.values(), ", ").toLowerCase();
+        final String validations = StringUtils.join(Validation.values(), ", ").toLowerCase(Locale.ENGLISH);
         return new Options()
                 .addOption(withDescription("Port to listen to\nDefault: " + DEFAULT_PORT).isRequired(false).withArgName("port").hasArg(true).create('p'))
                 .addOption(withDescription("Target URL to forward to").isRequired(false).withArgName("URL").hasArg(true).create('t'))

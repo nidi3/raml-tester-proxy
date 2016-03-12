@@ -60,13 +60,13 @@ public enum ReportFormat {
         }
 
         private String formatHeaders(Map<String, List<Object>> values) {
-            String res = "";
-            for (Map.Entry<String, List<Object>> entry : values.entrySet()) {
-                for (Object value : entry.getValue()) {
-                    res += entry.getKey() + ": " + value + "\n";
+            final StringBuilder res = new StringBuilder();
+            for (final Map.Entry<String, List<Object>> entry : values.entrySet()) {
+                for (final Object value : entry.getValue()) {
+                    res.append(entry.getKey()).append(": ").append(value).append('\n');
                 }
             }
-            return res;
+            return res.toString();
         }
 
     },

@@ -86,7 +86,7 @@ public class UsageData {
             return false;
         }
 
-        UsageData usageData = (UsageData) o;
+        final UsageData usageData = (UsageData) o;
 
         if (!unusedActions.equals(usageData.unusedActions)) {
             return false;

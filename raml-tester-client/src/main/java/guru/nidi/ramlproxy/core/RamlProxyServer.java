@@ -44,7 +44,7 @@ public abstract class RamlProxyServer implements AutoCloseable {
 
     abstract protected boolean stop() throws Exception;
 
-    abstract public void waitForServer() throws Exception;
+    abstract public void waitForServer() throws InterruptedException;
 
     abstract public boolean isStopped();
 

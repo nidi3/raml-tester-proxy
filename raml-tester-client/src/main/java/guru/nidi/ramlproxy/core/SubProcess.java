@@ -76,7 +76,9 @@ public class SubProcess implements AutoCloseable {
 
     public void readAllLines() throws InterruptedException {
         //noinspection StatementWithEmptyBody
-        while (readLine() != null);
+        while (readLine() != null) {
+            ;
+        }
     }
 
     public boolean hasEnded() {

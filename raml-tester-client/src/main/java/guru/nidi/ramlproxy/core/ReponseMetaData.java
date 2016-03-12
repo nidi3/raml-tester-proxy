@@ -38,7 +38,7 @@ public class ReponseMetaData {
         headers = new HashMap<>();
         final Map<String, Object> rawHeaders = (Map<String, Object>) raw.get("headers");
         if (rawHeaders != null) {
-            for (Map.Entry<String, Object> entry : rawHeaders.entrySet()) {
+            for (final Map.Entry<String, Object> entry : rawHeaders.entrySet()) {
                 if (entry.getValue() instanceof List) {
                     headers.put(entry.getKey(), (List<Object>) entry.getValue());
                 } else {
@@ -50,8 +50,8 @@ public class ReponseMetaData {
 
     public void apply(HttpServletResponse response) {
         response.setStatus(code);
-        for (Map.Entry<String, List<Object>> entry : headers.entrySet()) {
-            for (Object value : entry.getValue()) {
+        for (final Map.Entry<String, List<Object>> entry : headers.entrySet()) {
+            for (final Object value : entry.getValue()) {
                 response.addHeader(entry.getKey(), "" + value);
             }
         }

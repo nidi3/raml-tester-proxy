@@ -66,7 +66,7 @@ public class ValidatorConfigurator {
             return false;
         }
 
-        ValidatorConfigurator that = (ValidatorConfigurator) o;
+        final ValidatorConfigurator that = (ValidatorConfigurator) o;
 
         if (cli != null ? !cli.equals(that.cli) : that.cli != null) {
             return false;

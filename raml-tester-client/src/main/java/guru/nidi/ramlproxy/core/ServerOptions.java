@@ -55,7 +55,7 @@ public class ServerOptions {
         this.ramlUri = ramlUri;
         this.baseUri = baseUri;
         this.saveDir = saveDir;
-        this.fileFormat = fileFormat != null ? fileFormat : ReportFormat.TEXT;
+        this.fileFormat = fileFormat == null ? ReportFormat.TEXT : fileFormat;
         this.ignoreXheaders = ignoreXheaders;
         this.asyncMode = asyncMode;
         this.minDelay = minDelay;
@@ -78,12 +78,12 @@ public class ServerOptions {
     public List<String> asCli() {
         final String args = "" +
                 ("-p" + port) +
-                (target != null ? (" -t" + target) : "") +
-                (mockDir != null ? (" -m" + mockDir.getAbsolutePath()) : "") +
+                (target == null ? "" : (" -t" + target)) +
+                (mockDir == null ? "" : (" -m" + mockDir.getAbsolutePath())) +
                 (" -r" + ramlUri) +
-                (baseUri != null ? (" -b" + baseUri) : "") +
-                (saveDir != null ? (" -s" + saveDir) : "") +
-                (fileFormat != null ? (" -f" + fileFormat) : "") +
+                (baseUri == null ? "" : (" -b" + baseUri)) +
+                (saveDir == null ? "" : (" -s" + saveDir)) +
+                (fileFormat == null ? "" : (" -f" + fileFormat)) +
                 (ignoreXheaders ? " -i" : "") +
                 (asyncMode ? " -a" : "") +
                 (" -d" + minDelay + "-" + maxDelay) +
@@ -128,7 +128,9 @@ public class ServerOptions {
     }
 
     public String getBaseOrTargetUri() {
-        return getBaseUri() != null ? getBaseUri() : (target != null ? getTargetUrl() : null);
+        return getBaseUri() == null
+                ? (target == null ? null : getTargetUrl())
+                : getBaseUri();
     }
 
     public ReportFormat getFileFormat() {
@@ -193,7 +195,7 @@ public class ServerOptions {
             return false;
         }
 
-        ServerOptions that = (ServerOptions) o;
+        final ServerOptions that = (ServerOptions) o;
 
         if (port != that.port) {
             return false;

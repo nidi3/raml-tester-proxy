@@ -73,7 +73,7 @@ public class Reporter extends ReportSaver {
 
     @Override
     public void flushingUsage(ReportAggregator aggregator) {
-        for (Map.Entry<String, Usage> entry : aggregator.usages()) {
+        for (final Map.Entry<String, Usage> entry : aggregator.usages()) {
             logUsage(entry.getKey(), entry.getValue());
             fileUsage(entry.getKey(), entry.getValue());
         }

@@ -21,17 +21,20 @@ import org.slf4j.impl.SimpleLogger;
 /**
  *
  */
-class LogConfigurer {
+final class LogConfigurer {
+    private static final String WARN = "warn";
+    private static final String INFO = "info";
+    private static final String DEBUG = "debug";
+
     private LogConfigurer() {
     }
 
     public static void config() {
-        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "debug");
-        setLogLevel("org.eclipse.jetty", "warn");
-        setLogLevel("org.raml.parser", "warn");
-        setLogLevel("org.apache.http", "warn");
-        setLogLevel("org.apache.http", "warn");
-        setLogLevel("guru.nidi.ramlproxy.jetty.JettyProxyServlet", "info");
+        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, DEBUG);
+        setLogLevel("org.eclipse.jetty", WARN);
+        setLogLevel("org.raml.parser", WARN);
+        setLogLevel("org.apache.http", WARN);
+        setLogLevel("guru.nidi.ramlproxy.jetty.JettyProxyServlet", INFO);
         LoggerFactory.getILoggerFactory();
     }
 

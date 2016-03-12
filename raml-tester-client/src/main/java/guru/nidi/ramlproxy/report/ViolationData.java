@@ -85,7 +85,7 @@ public class ViolationData {
             return false;
         }
 
-        ViolationData data = (ViolationData) o;
+        final ViolationData data = (ViolationData) o;
 
         if (id != data.id) {
             return false;

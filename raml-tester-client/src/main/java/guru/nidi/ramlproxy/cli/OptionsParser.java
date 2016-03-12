@@ -63,7 +63,7 @@ abstract class OptionsParser<T> {
     }
 
     public void showHelp() {
-        HelpFormatter formatter = new HelpFormatter();
+        final HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(80);
         formatter.setOptionComparator(optionComparator());
         formatter.printHelp(command(), helpHeader(), createOptions(), "", true);
@@ -71,7 +71,7 @@ abstract class OptionsParser<T> {
 
     protected String[] expandArgs(String[] args) {
         final List<String> res = new ArrayList<>();
-        for (String arg : args) {
+        for (final String arg : args) {
             if (arg.charAt(0) == '-' && arg.length() > 2) {
                 res.add(arg.substring(0, 2));
                 res.add(arg.substring(2));

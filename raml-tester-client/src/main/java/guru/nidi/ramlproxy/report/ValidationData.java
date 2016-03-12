@@ -49,7 +49,7 @@ public class ValidationData {
             return false;
         }
 
-        ValidationData that = (ValidationData) o;
+        final ValidationData that = (ValidationData) o;
 
         if (ramlTitle != null ? !ramlTitle.equals(that.ramlTitle) : that.ramlTitle != null) {
             return false;
