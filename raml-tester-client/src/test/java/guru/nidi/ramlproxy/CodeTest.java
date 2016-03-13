@@ -28,7 +28,6 @@ import guru.nidi.codeassert.model.ModelAnalyzer;
 import guru.nidi.codeassert.model.ModelResult;
 import guru.nidi.codeassert.pmd.*;
 import guru.nidi.ramlproxy.core.Command;
-import net.sourceforge.pmd.RulePriority;
 import org.junit.Test;
 
 import static guru.nidi.codeassert.junit.CodeAssertMatchers.packagesMatchExactly;
@@ -79,13 +78,13 @@ public class CodeTest extends CodeAssertTest {
 
     @Override
     protected PmdResult analyzePmd() {
-        return new PmdAnalyzer(config, new ViolationCollector().minPriority(RulePriority.MEDIUM)
-                .because("I don't agree", In.everywhere().ignore(
-                        "AvoidFieldNameMatchingMethodName", "AvoidFieldNameMatchingTypeName", "CommentDefaultAccessModifier",
-                        "MethodArgumentCouldBeFinal", "UncommentedEmptyMethodBody", "VariableNamingConventions",
-                        "AvoidInstantiatingObjectsInLoops","AvoidSynchronizedAtMethodLevel"))
-                .because("equals is complex", In.locs("#equals", "#hashCode").ignore(
-                        "CyclomaticComplexity", "StdCyclomaticComplexity", "ModifiedCyclomaticComplexity", "NPathComplexity"))
+        return new PmdAnalyzer(config, new ViolationCollector() //.minPriority(RulePriority.MEDIUM)
+//                .because("I don't agree", In.everywhere().ignore(
+//                        "AvoidFieldNameMatchingMethodName", "AvoidFieldNameMatchingTypeName", "CommentDefaultAccessModifier",
+//                        "MethodArgumentCouldBeFinal", "UncommentedEmptyMethodBody", "VariableNamingConventions",
+//                        "AvoidInstantiatingObjectsInLoops","AvoidSynchronizedAtMethodLevel"))
+//                .because("equals is complex", In.locs("#equals", "#hashCode").ignore(
+//                        "CyclomaticComplexity", "StdCyclomaticComplexity", "ModifiedCyclomaticComplexity", "NPathComplexity"))
                 .because("TODO",  //TODO
                         In.everywhere().ignoreAll())
         ).withRuleSets(basic(), braces(), codesize(),
