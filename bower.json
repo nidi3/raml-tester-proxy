@@ -15,7 +15,7 @@
   "ignore": [
     "raml-tester-client/",
     "raml-tester-standalone/",
-    ".travis.json",
+    ".travis.yml",
     "pom.xml"
   ]
 }
