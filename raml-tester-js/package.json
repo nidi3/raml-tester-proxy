@@ -3,6 +3,7 @@
   "title": "Verify requests / responses against a RAML definition",
   "description": "Verify requests / responses against a RAML definition",
   "version": "0.8.10-SNAPSHOT",
+  "homepage": "https://github.com/nidi3/raml-tester-proxy/blob/master/raml-tester-js/README.md",
   "private": false,
   "license": "Apache-2.0",
   "author": {
@@ -15,7 +16,7 @@
   "main": "lib/raml-tester.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nidi3/raml-tester-proxy/raml-tester-js"
+    "url": "https://github.com/nidi3/raml-tester-proxy.git"
   },
   "devDependencies": {
     "chai": "~2.1.2",
