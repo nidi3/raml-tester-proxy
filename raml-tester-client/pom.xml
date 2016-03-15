@@ -64,46 +64,6 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <properties>
-                <jsdir>${basedir}/../raml-tester-js</jsdir>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.7</version>
-                        <executions>
-                            <execution>
-                                <id>set-js-version</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
-                                        <replaceregexp match="(&quot;)?version&quot;?(\s*(:|=)\s*)&quot;[^&quot;]*&quot;" replace="\1version\1\2&quot;${project.version}&quot;">
-                                            <fileset dir="${jsdir}" includes="*" />
-                                        </replaceregexp>
-                                        <exec dir="${jsdir}" executable="npm">
-                                            <arg value="install" />
-                                        </exec>
-                                        <exec dir="${jsdir}" executable="node_modules/.bin/grunt" />
-                                        <exec dir="${jsdir}" executable="npm">
-                                            <arg value="publish" />
-                                        </exec>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <!-- Only test dependencies here, the rest in parent pom-->
     <dependencies>
         <dependency>

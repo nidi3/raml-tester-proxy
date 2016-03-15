@@ -1,6 +1,6 @@
 {
   "name": "raml-tester",
-  "version": "0.8.6",
+  "version": "0.8.10-SNAPSHOT",
   "homepage": "https://github.com/nidi3/raml-tester-proxy/raml-tester-js",
   "authors": [
     "Stefan Niederhauser <ich@nidi.guru>"
