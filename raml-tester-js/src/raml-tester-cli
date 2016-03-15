@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+const rt = require('raml-tester'),
+    params = process.argv.slice(2),
+    opts = rt.parseCli(params);
+
+switch (opts.mode) {
+case 'server':
+    rt.start(opts, function (out) {
+        console.log(out);
+    });
+    break;
+case 'client':
+    rt.command(opts, function (ok) {
+        console.log(ok);
+    }, function (fail) {
+        console.log(fail);
+    });
+    break;
+default:
+    rt.help(function (out) {
+        console.log(out);
+    });
+    break;
+}

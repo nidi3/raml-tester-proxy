@@ -61,5 +61,5 @@ An example file looks like `{ "code": 202, "headers": {"X-meta": "get!"} }`.
 ##Usage from Javascript
 There is a special support for usage from javascript.
 
-See [raml-tester-js](https://github.com/nidi3/raml-tester-js) for details and
+See [raml-tester-js](raml-tester-js/README.md) for details and
 [raml-tester-uc-js](https://github.com/nidi3/raml-tester-uc-js) for examples.
