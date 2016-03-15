@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>raml-tester-proxy</artifactId>
@@ -48,13 +49,16 @@
                 <version>1.7</version>
                 <executions>
                     <execution>
+                        <id>set-java-version</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
                         <configuration>
                             <target>
-                                <replaceregexp file="src/main/java/guru/nidi/ramlproxy/Version.java" match="VERSION = &quot;[^&quot;]*&quot;" replace="VERSION = &quot;${project.version}&quot;" />
+                                <replaceregexp file="src/main/java/guru/nidi/ramlproxy/Version.java"
+                                    match="VERSION = &quot;[^&quot;]*&quot;"
+                                    replace="VERSION = &quot;${project.version}&quot;" />
                             </target>
                         </configuration>
                     </execution>
@@ -62,6 +66,48 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <jsdir>${basedir}/../raml-tester-js</jsdir>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>set-js-version</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <replaceregexp
+                                            match="(&quot;)?version&quot;?(\s*(:|=)\s*)&quot;[^&quot;]*&quot;"
+                                            replace="\1version\1\2&quot;${project.version}&quot;">
+                                            <fileset dir="${jsdir}" includes="*" />
+                                        </replaceregexp>
+                                        <exec dir="${jsdir}" executable="npm">
+                                            <arg value="install" />
+                                        </exec>
+                                        <exec dir="${jsdir}" executable="node_modules/.bin/grunt" />
+                                        <exec dir="${jsdir}" executable="npm">
+                                            <arg value="publish" />
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <!-- Only test dependencies here, the rest in parent pom-->
     <dependencies>
