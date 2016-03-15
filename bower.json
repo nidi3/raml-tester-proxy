@@ -14,6 +14,8 @@
   "license": "Apache-2.0",
   "ignore": [
     "raml-tester-client/",
-    "raml-tester-standalone/"
+    "raml-tester-standalone/",
+    ".travis.json",
+    "pom.xml"
   ]
 }
