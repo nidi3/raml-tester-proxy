@@ -6,19 +6,14 @@
     "Stefan Niederhauser <ich@nidi.guru>"
   ],
   "description": "Verify requests / responses against a RAML definition",
-  "main": "lib/raml-tester-browser.js",
+  "main": "raml-tester-js/lib/raml-tester-browser.js",
   "keywords": [
     "RAML",
     "test"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "ignore": [
-    "bin",
-    "lib/raml-tester.js",
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
+    "raml-tester-client/",
+    "raml-tester-standalone/"
   ]
 }
