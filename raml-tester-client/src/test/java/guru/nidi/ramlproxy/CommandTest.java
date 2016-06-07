@@ -244,7 +244,7 @@ public class CommandTest {
         final String content = content(res);
         final ValidationData resAsData = mapped(content, ValidationData.class);
         assertEquals("simple", resAsData.getRamlTitle());
-        assertEquals(resAsData.getValidationViolations().get(0), "Root definition has no description");
+        assertEquals(resAsData.getValidationViolations().get(0), "Root definition has no documentation");
     }
 
     @SuppressWarnings("unchecked")
