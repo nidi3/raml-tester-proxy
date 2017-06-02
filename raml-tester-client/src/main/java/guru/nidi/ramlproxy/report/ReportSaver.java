@@ -42,7 +42,7 @@ public class ReportSaver {
     public final synchronized void addReport(RamlReport report, ServletRamlRequest request, ServletRamlResponse response) {
         addingReport(report, request, response);
         aggregator.addReport(report);
-        getOrCreateInfos(report.getRaml().getTitle()).add(new ReportInfo(report, request, response));
+        getOrCreateInfos(report.getRaml().title()).add(new ReportInfo(report, request, response));
     }
 
     public final synchronized void flushReports() {

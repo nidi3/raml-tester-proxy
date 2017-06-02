@@ -79,8 +79,6 @@
         <dependency>
             <groupId>guru.nidi</groupId>
             <artifactId>code-assert</artifactId>
-            <version>0.0.5</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>

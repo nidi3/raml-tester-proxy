@@ -76,7 +76,7 @@ public class TesterFilter implements Filter, CommandContext {
             try {
                 saver.addReport(RamlReport.fromException(ramlDefinition.getRaml(), e), request, response);
             } catch (Exception e2) {
-                System.err.println("Problem checking raml '" + ramlDefinition.getRaml().getTitle() + "'");
+                System.err.println("Problem checking raml '" + ramlDefinition.getRaml().title() + "'");
                 e.printStackTrace();
             }
         }

@@ -21,6 +21,7 @@ import guru.nidi.ramlproxy.core.ClientOptions;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.RamlViolationMessage;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class Main {
         final RamlReport validate = options.validateRaml(definition);
         if (!validate.getValidationViolations().isEmpty()) {
             System.out.println("The RAML file has validation errors:");
-            for (final String violation : validate.getValidationViolations()) {
+            for (final RamlViolationMessage violation : validate.getValidationViolations()) {
                 System.out.println("- " + violation);
             }
         }
