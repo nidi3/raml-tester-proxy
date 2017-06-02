@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.report;
+package guru.nidi.ramlproxy.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import guru.nidi.ramltester.core.RamlViolations;
 
 import java.util.List;
 import java.util.Map;
+
+import static guru.nidi.ramlproxy.data.Converters.violationMessages;
 
 public class ViolationData {
     private final long id;
@@ -43,6 +46,16 @@ public class ViolationData {
         this.response = response;
         this.responseHeaders = responseHeaders;
         this.responseViolations = responseViolations;
+    }
+
+    public static ViolationData of(long id,
+                                   String request, Map<String, List<Object>> requestHeaders,
+                                   RamlViolations requestViolations,
+                                   String response, Map<String, List<Object>> responseHeaders,
+                                   RamlViolations responseViolations) {
+        return new ViolationData(id,
+                request, requestHeaders, violationMessages(requestViolations),
+                response, responseHeaders, violationMessages(responseViolations));
     }
 
     public long getId() {

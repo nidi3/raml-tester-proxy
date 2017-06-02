@@ -18,8 +18,10 @@ package guru.nidi.ramlproxy.core;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.RamlDefinition;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.model.internal.RamlApi;
 import guru.nidi.ramltester.servlet.ServletRamlRequest;
 import guru.nidi.ramltester.servlet.ServletRamlResponse;
+import guru.nidi.ramltester.util.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class TesterFilter implements Filter, CommandContext {
     private final static Logger log = LoggerFactory.getLogger(TesterFilter.class);
@@ -74,12 +77,20 @@ public class TesterFilter implements Filter, CommandContext {
             saver.addReport(report, request, response);
         } catch (Exception e) {
             try {
-                saver.addReport(RamlReport.fromException(ramlDefinition.getRaml(), e), request, response);
+                saver.addReport(fromException(ramlDefinition.getRaml(), e), request, response);
             } catch (Exception e2) {
                 System.err.println("Problem checking raml '" + ramlDefinition.getRaml().title() + "'");
                 e.printStackTrace();
             }
         }
+    }
+
+    private RamlReport fromException(RamlApi raml, Exception cause) {
+        final RamlReport report = new RamlReport(raml);
+        final StringWriter out = new StringWriter();
+        cause.printStackTrace(new PrintWriter(out));
+        report.getValidationViolations().add(new Message("checking.exception"), out.toString());
+        return report;
     }
 
     public boolean handleCommands(HttpServletRequest request, HttpServletResponse response) throws IOException {

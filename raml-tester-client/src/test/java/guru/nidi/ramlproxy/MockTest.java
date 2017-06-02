@@ -20,6 +20,7 @@ import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.ReportSaver.ReportInfo;
 import guru.nidi.ramltester.core.RamlReport;
+import guru.nidi.ramltester.core.RamlViolationMessage;
 import org.apache.http.HttpResponse;
 import org.junit.After;
 import org.junit.Before;
@@ -56,8 +57,8 @@ public class MockTest {
         assertEquals("get!", res.getFirstHeader("X-meta").getValue());
 
         final RamlReport report = assertOneReport();
-        final Iterator<String> iter = report.getResponseViolations().iterator();
-        assertEquals("Response(202) is not defined on action(GET /data)", iter.next());
+        final Iterator<RamlViolationMessage> iter = report.getResponseViolations().iterator();
+        assertEquals("Response(202) is not defined on action(GET /data)", iter.next().getMessage());
         assertTrue(report.getRequestViolations().isEmpty());
     }
 
@@ -72,8 +73,8 @@ public class MockTest {
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
         final RamlReport report = assertOneReport();
-        final Iterator<String> iter = report.getRequestViolations().iterator();
-        assertEquals("Resource '/multi' is not defined", iter.next());
+        final Iterator<RamlViolationMessage> iter = report.getRequestViolations().iterator();
+        assertEquals("Resource '/multi' is not defined", iter.next().getMessage());
         assertTrue(report.getResponseViolations().isEmpty());
     }
 
@@ -88,8 +89,8 @@ public class MockTest {
         assertThat(content, containsString("src/test/resources/guru/nidi/ramlproxy/v1"));
 
         final RamlReport report = assertOneReport();
-        final Iterator<String> iter = report.getRequestViolations().iterator();
-        assertEquals("Resource '/notExisting' is not defined", iter.next());
+        final Iterator<RamlViolationMessage> iter = report.getRequestViolations().iterator();
+        assertEquals("Resource '/notExisting' is not defined", iter.next().getMessage());
         assertTrue(report.getResponseViolations().isEmpty());
     }
 
@@ -117,8 +118,8 @@ public class MockTest {
         assertEquals("true", res.getFirstHeader("X-meta").getValue());
 
         final RamlReport report = assertOneReport();
-        final Iterator<String> iter = report.getRequestViolations().iterator();
-        assertEquals("Action POST is not defined on resource(/super/sub)", iter.next());
+        final Iterator<RamlViolationMessage> iter = report.getRequestViolations().iterator();
+        assertEquals("Action POST is not defined on resource(/super/sub)", iter.next().getMessage());
         assertTrue(report.getResponseViolations().isEmpty());
     }
 

@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.core.ValidatorConfigurator;
-import guru.nidi.ramlproxy.report.*;
+import guru.nidi.ramlproxy.data.*;
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.SimpleReportAggregator;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
@@ -244,7 +245,7 @@ public class CommandTest {
         final String content = content(res);
         final ValidationData resAsData = mapped(content, ValidationData.class);
         assertEquals("simple", resAsData.getRamlTitle());
-        assertEquals(resAsData.getValidationViolations().get(0), "Root definition has no documentation");
+        assertEquals("root definition has no documentation", resAsData.getValidationViolations().get(0));
     }
 
     @SuppressWarnings("unchecked")

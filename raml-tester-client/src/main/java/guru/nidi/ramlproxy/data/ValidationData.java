@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.report;
+package guru.nidi.ramlproxy.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import guru.nidi.ramltester.core.RamlViolations;
 
 import java.util.List;
+
+import static guru.nidi.ramlproxy.data.Converters.violationMessages;
 
 public class ValidationData {
     private final String ramlTitle;
@@ -27,6 +30,10 @@ public class ValidationData {
                           @JsonProperty("validationViolations") List<String> validationViolations) {
         this.ramlTitle = ramlTitle;
         this.validationViolations = validationViolations;
+    }
+
+    public static ValidationData of(String ramlTitle, RamlViolations violations) {
+        return new ValidationData(ramlTitle, violationMessages(violations));
     }
 
     public String getRamlTitle() {

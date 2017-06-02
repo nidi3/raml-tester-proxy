@@ -16,9 +16,13 @@
 package guru.nidi.ramlproxy.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import guru.nidi.ramlproxy.report.*;
+import guru.nidi.ramlproxy.data.UsageDatas;
+import guru.nidi.ramlproxy.data.ValidationData;
+import guru.nidi.ramlproxy.data.ViolationData;
+import guru.nidi.ramlproxy.data.ViolationDatas;
+import guru.nidi.ramlproxy.report.ReportFormat;
+import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramltester.core.RamlReport;
-import guru.nidi.ramltester.core.RamlViolationMessage;
 import guru.nidi.ramltester.core.Usage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,11 +132,7 @@ public enum Command {
         @Override
         public void execute(CommandContext context, PrintWriter out) throws IOException {
             final RamlReport report = context.validateRaml();
-            final List<String> msgs = new ArrayList<>();
-            for (final RamlViolationMessage msg : report.getValidationViolations()) {
-                msgs.add(msg.getMessage());
-            }
-            out.print(MAPPER.writeValueAsString(new ValidationData(report.getRaml().title(), msgs)));
+            out.print(MAPPER.writeValueAsString(ValidationData.of(report.getRaml().title(), report.getValidationViolations())));
         }
 
         @Override

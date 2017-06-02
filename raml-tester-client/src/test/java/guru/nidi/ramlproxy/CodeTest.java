@@ -40,14 +40,15 @@ public class CodeTest extends CodeAssertTest {
     @Test
     public void dependencies() {
         class GuruNidiRamlproxy extends DependencyRuler {
-            DependencyRule $self, report, cli, jetty, core;
+            DependencyRule report, cli, jetty, core, data;
 
             @Override
             public void defineRules() {
-                cli.mayUse(core, report, $self);
-                $self.mayUse(core, report, jetty);
-                core.mayUse(report);
+                cli.mayUse(core, report, base());
+                base().mayUse(core, report, jetty);
                 jetty.mayUse(core, report);
+                core.mayUse(report, data);
+                report.mayUse(data);
             }
         }
 
@@ -75,7 +76,7 @@ public class CodeTest extends CodeAssertTest {
 
     @Override
     protected PmdResult analyzePmd() {
-        return new PmdAnalyzer(config, new ViolationCollector() //.minPriority(RulePriority.MEDIUM)
+        return new PmdAnalyzer(config, new PmdViolationCollector() //.minPriority(RulePriority.MEDIUM)
 //                .because("I don't agree", In.everywhere().ignore(
 //                        "AvoidFieldNameMatchingMethodName", "AvoidFieldNameMatchingTypeName", "CommentDefaultAccessModifier",
 //                        "MethodArgumentCouldBeFinal", "UncommentedEmptyMethodBody", "VariableNamingConventions",
@@ -84,7 +85,7 @@ public class CodeTest extends CodeAssertTest {
 //                        "CyclomaticComplexity", "StdCyclomaticComplexity", "ModifiedCyclomaticComplexity", "NPathComplexity"))
                 .because("TODO",  //TODO
                         In.everywhere().ignoreAll())
-        ).withRuleSets(basic(), braces(), codesize(),
+        ).withRulesets(basic(), braces(), codesize(),
                 comments().requirement(Comments.Requirement.Ignored).maxLines(20),
                 design(), empty(), exceptions(), imports(),
                 junit(),
@@ -95,7 +96,7 @@ public class CodeTest extends CodeAssertTest {
 
     @Override
     protected CpdResult analyzeCpd() {
-        return new CpdAnalyzer(config, 25, new MatchCollector().just(
+        return new CpdAnalyzer(config, 25, new CpdMatchCollector().just(
                 In.classes(Command.class).ignore("public void execute(CommandContext context, PrintWriter out) throws IOException {"),
                 In.loc("*Parser").ignoreAll(),
                 In.everywhere().ignore("public boolean equals(Object o) {")

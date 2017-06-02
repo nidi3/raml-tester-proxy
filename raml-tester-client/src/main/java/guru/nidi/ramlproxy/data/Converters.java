@@ -13,10 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package guru.nidi.ramlproxy.report;
+package guru.nidi.ramlproxy.data;
 
-import java.util.HashMap;
+import guru.nidi.ramltester.core.RamlViolationMessage;
+import guru.nidi.ramltester.core.RamlViolations;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class ViolationDatas extends HashMap<String, List<ViolationData>> {
+class Converters {
+    private Converters() {
+    }
+
+    public static List<String> violationMessages(RamlViolations violations) {
+        final List<String> res = new ArrayList<>();
+        for (final RamlViolationMessage msg : violations) {
+            res.add(msg.getMessage());
+        }
+        return res;
+    }
 }

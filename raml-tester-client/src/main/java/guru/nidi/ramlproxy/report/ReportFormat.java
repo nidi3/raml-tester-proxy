@@ -16,6 +16,8 @@
 package guru.nidi.ramlproxy.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import guru.nidi.ramlproxy.data.UsageData;
+import guru.nidi.ramlproxy.data.ViolationData;
 import guru.nidi.ramltester.core.RamlReport;
 import guru.nidi.ramltester.core.Usage;
 import guru.nidi.ramltester.model.RamlMessage;
@@ -119,14 +121,10 @@ public enum ReportFormat {
     }
 
     public static ViolationData createViolationData(long id, RamlReport report, ServletRamlRequest request, ServletRamlResponse response) throws UnsupportedEncodingException {
-        return new ViolationData(
-                id,
-                formatRequest(request),
-                request.getHeaderValues().asMap(),
-                report.getRequestViolations().asList(),
-                content(response, response.getCharacterEncoding()),
-                response.getHeaderValues().asMap(),
-                report.getResponseViolations().asList());
+        return ViolationData.of(id,
+                formatRequest(request), request.getHeaderValues().asMap(),
+                report.getRequestViolations(),
+                content(response, response.getCharacterEncoding()), response.getHeaderValues().asMap(),
+                report.getResponseViolations());
     }
-
 }

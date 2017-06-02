@@ -19,6 +19,7 @@ import guru.nidi.ramlproxy.core.RamlProxyServer;
 import guru.nidi.ramlproxy.core.ServerOptions;
 import guru.nidi.ramlproxy.report.ReportSaver;
 import guru.nidi.ramlproxy.report.ReportSaver.ReportInfo;
+import guru.nidi.ramltester.core.RamlViolationMessage;
 import guru.nidi.ramltester.core.RamlViolations;
 import org.apache.catalina.LifecycleException;
 import org.junit.AfterClass;
@@ -74,11 +75,11 @@ public class ProxyTest {
 
             final RamlViolations requestViolations = reports.get(0).getReport().getRequestViolations();
             assertEquals(1, requestViolations.size());
-            assertEquals("Query parameter 'param' on action(GET /data) is not defined", requestViolations.iterator().next());
+            assertEquals("Query parameter 'param' on action(GET /data) is not defined", requestViolations.iterator().next().getMessage());
 
             final RamlViolations responseViolations = reports.get(0).getReport().getResponseViolations();
             assertEquals(1, responseViolations.size());
-            assertThat(responseViolations.iterator().next(), startsWith(
+            assertThat(responseViolations.iterator().next().getMessage(), startsWith(
                     "Body does not match schema for action(GET /data) response(200) mime-type('application/json')\n" +
                             "Content: illegal json\n"));
         }
@@ -93,8 +94,8 @@ public class ProxyTest {
             final List<ReportInfo> reports = proxy.getSaver().getReports("github-meta");
             assertEquals(1, reports.size());
             assertTrue(reports.get(0).getReport().getRequestViolations().isEmpty());
-            for (final String resViol : reports.get(0).getReport().getResponseViolations()) {
-                assertThat(resViol, startsWith("Header 'X-"));
+            for (final RamlViolationMessage resViol : reports.get(0).getReport().getResponseViolations()) {
+                assertThat(resViol.getMessage(), startsWith("Header 'X-"));
             }
         }
     }
